@@ -1,0 +1,137 @@
+<script>
+	import { assetsStore, promoAssetsStore, promoBalancesStore } from 'src/stores/store';
+
+	import { toFixedCurrency } from 'src/utils/toFixedCurrency';
+	import { slide } from 'svelte/transition';
+
+	let available = 0;
+	let staked = 0;
+	let power = 0;
+
+	$: {
+		if ($assetsStore.length) {
+			let tempPower = 0;
+
+			let stakedTemp = 0;
+			let availableTemp = 0;
+			$assetsStore.forEach((element) => {
+				if (element.isStaked && element.isStakeable) {
+					stakedTemp++;
+					tempPower += element.weight;
+				} else if (element.isStakeable && !element.isStaked) {
+					availableTemp++;
+				}
+			});
+
+			available = availableTemp;
+			staked = stakedTemp;
+			power = tempPower;
+		}
+	}
+</script>
+
+<div class="wrapper" in:slide={{ delay: 400 }}>
+	<h1>Flash Drives</h1>
+	<div class="shell-info">
+		<div>
+			<span class="">Available for staking</span>
+			<span class="teal">{available}</span>
+		</div>
+		<div class="num-staked">
+			<span>Staked</span>
+			<span class="teal">{staked}</span>
+		</div>
+	</div>
+
+	<div class="claim-info">
+		<div>
+			<span>Shell/h</span>
+			<span class="teal">{toFixedCurrency(power / 10000, 2)}</span>
+		</div>
+		<!-- <PromoClaim /> -->
+		<!-- 	<PromoStake /> -->
+		<div />
+	</div>
+</div>
+
+<style>
+	.wrapper {
+		color: white;
+		border-top: solid 1px #707070;
+		margin: 36px auto;
+		padding-top: 36px;
+	}
+
+	.wrapper h1 {
+		font-size: 20px;
+		margin-bottom: 36px;
+		text-align: center;
+		font-weight: 900;
+	}
+
+	.claim-info {
+		display: flex;
+		margin: 0 auto 42px;
+		padding: 0 14px;
+		align-items: center;
+		max-width: 375px;
+	}
+	.shell-info {
+		display: flex;
+		margin: 0 auto 42px;
+		padding: 0 14px;
+		align-items: center;
+		text-align: right;
+		max-width: 375px;
+		justify-content: space-between;
+	}
+	.shell-info div {
+		display: flex;
+		flex-direction: column;
+		text-align: right;
+	}
+
+	.claim-info div {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		justify-content: center;
+	}
+	.num-staked {
+		align-self: end;
+	}
+	.teal {
+		color: var(--primary-teal);
+	}
+
+	@media (min-width: 1024px) {
+		.claim-info {
+			max-width: none;
+			margin: 0;
+			padding: 0;
+			/* flex: 0 0 300px; */
+		}
+
+		.shell-info {
+			max-width: none;
+			margin: 0 48px 0 0;
+			padding: 0;
+			flex: 0 0 250px;
+		}
+
+		.wrapper {
+			display: flex;
+			max-width: 1256px;
+			padding: 0 0;
+		}
+		.num-staked {
+			align-self: initial;
+		}
+		.wrapper h1 {
+			white-space: nowrap;
+			flex: 2;
+			margin-top: 48px;
+			text-align: left;
+		}
+	}
+</style>

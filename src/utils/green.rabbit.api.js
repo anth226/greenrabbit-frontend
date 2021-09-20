@@ -1,0 +1,674 @@
+import { chain } from './chain';
+import { createInitialTypes, SerialBuffer } from 'eosjs/dist/eosjs-serialize.js';
+import { atomicAssetsApi } from './atomic.assets.api';
+import {
+	STAKING_CONTRACT,
+	TOKEN_CONTRACT,
+	TESTNET,
+	PROMO_CONTRACT,
+	STORE_CONTRACT,
+	UNBOXING_CONTRACT,
+	CRAFTING_CONTRACT
+} from './config';
+import { resolveAfterMS, resolveAfterSeconds } from './helpers';
+
+const ACTIVE = 1;
+const INACTIVE = 0;
+const builtinTypes = createInitialTypes();
+
+const typeUint128 = builtinTypes.get('uint128');
+const typeName = builtinTypes.get('name');
+const typeUint64 = builtinTypes.get('uint64');
+
+function getUserAssetLower(name) {
+	const buf = new SerialBuffer({
+		textDecoder: new TextDecoder(),
+		textEncoder: new TextEncoder()
+	});
+
+	buf.pushNumberAsUint64(0);
+	buf.pushName(name);
+
+	let val = typeUint128.deserialize(buf);
+
+	return val;
+}
+
+function getUserAssetUpper(name) {
+	const buf = new SerialBuffer({
+		textDecoder: new TextDecoder(),
+		textEncoder: new TextEncoder()
+	});
+
+	typeUint64.serialize(buf, '18446744073709551615');
+	buf.pushName(name);
+
+	let val = typeUint128.deserialize(buf);
+	return val;
+}
+function getSalesLower(state = ACTIVE) {
+	const buf = new SerialBuffer({
+		textDecoder: new TextDecoder(),
+		textEncoder: new TextEncoder()
+	});
+
+	buf.pushNumberAsUint64(0); // lowest uint64_t value
+	buf.pushNumberAsUint64(state); // state of the sale
+
+	let val = typeUint128.deserialize(buf);
+
+	return val;
+}
+
+function getSalesUpper(state = ACTIVE) {
+	const buf = new SerialBuffer({
+		textDecoder: new TextDecoder(),
+		textEncoder: new TextEncoder()
+	});
+
+	typeUint64.serialize(buf, '18446744073709551615'); // highest uint64_t value
+	buf.pushNumberAsUint64(state); // state of the sale
+
+	let val = typeUint128.deserialize(buf);
+	return val;
+}
+async function fetchPoolAssets(activeUser, collections) {
+	if (!collections || !collections[0].collection) return;
+
+	if (!activeUser) return;
+
+	let res = await atomicAssetsApi.getAssets(activeUser.accountName, collections[0].collection);
+
+	if (res?.success) {
+		// TODO: Figure out what can be staked, like flashdrives etc
+
+		// This is a TEMP filter
+		let assets = res.data.filter((a) => {
+			if (a.schema.schema_name === 'flashdrive') return false;
+			if (a.schema.schema_name === 'packs') return false;
+			if (a.schema.schema_name === 'chests') return false;
+			return true;
+		});
+
+		return assets;
+	}
+}
+
+async function fetchAccount(activeUser) {
+	if (!activeUser) return;
+
+	let res = await chain.post('/v1/chain/get_table_rows', {
+		code: STAKING_CONTRACT,
+		index_position: 1,
+		json: true,
+		limit: 1,
+		scope: STAKING_CONTRACT,
+		table: 'accounts',
+		lower_bound: activeUser.accountName,
+		upper_bound: activeUser.accountName
+	});
+	if (res?.rows?.length) {
+		return res?.rows[0];
+	}
+	return { user: activeUser.accountName, collected: '0.0000 SHELL' };
+}
+
+async function fetchCraftLog(activeUser) {
+	if (!activeUser) return;
+
+	let res = await chain.post('/v1/chain/get_table_rows', {
+		code: CRAFTING_CONTRACT,
+		index_position: 1,
+		json: true,
+		limit: 1,
+		scope: CRAFTING_CONTRACT,
+		table: 'craftlogs',
+		lower_bound: activeUser.accountName,
+		upper_bound: activeUser.accountName
+	});
+	if (res?.rows?.length) {
+		return res?.rows[0];
+	}
+	return null;
+}
+
+async function fetchSales(contract = STORE_CONTRACT, mock = null) {
+	if (!contract) return;
+	if (mock) return mock;
+	let res = await chain.post('/v1/chain/get_table_rows', {
+		code: contract,
+		index_position: 1,
+		json: true,
+		limit: 100,
+		scope: contract,
+		table: 'sale'
+	});
+	if (res) {
+		return res?.rows;
+	}
+}
+async function fetchSaleStats(saleId, activeUser, contract = STORE_CONTRACT) {
+	if (!activeUser) return;
+
+	let res = await chain.post('/v1/chain/get_table_rows', {
+		code: contract,
+		index_position: 1,
+		json: true,
+		limit: 1,
+		scope: activeUser.accountName,
+		table: 'accstats',
+		lower_bound: saleId,
+		upper_bound: saleId
+	});
+
+	if (res?.rows[0]) {
+		return res?.rows[0];
+	}
+	return { counter: 0, last_buy_time: 0 };
+}
+async function fetchBalance(activeUser) {
+	if (!activeUser) return;
+
+	let res = await chain.post('/v1/chain/get_table_rows', {
+		code: TOKEN_CONTRACT,
+		index_position: 1,
+		json: true,
+		limit: 10,
+		scope: activeUser.accountName,
+		table: 'accounts'
+	});
+	let balance = 0.0;
+
+	if (res?.rows?.length) {
+		let shell = res.rows.find((acc) => acc.balance.includes('SHELL'));
+		if (shell) {
+			balance = (parseInt(shell.balance.split(' ')[0].replace('.', '')) / 10000).toFixed(2);
+		} else {
+			balance = 0.0;
+		}
+	} else {
+		balance = 0.0;
+	}
+
+	return balance;
+}
+
+async function fetchPromoBalance(activeUser, collections) {
+	if (!activeUser) return;
+	let balances = [];
+	for (let collection of collections) {
+		const res = await fetchPromoCollectionBalance(activeUser, collection);
+		balances.push({
+			collection: collection.collection,
+			balance: res
+		});
+	}
+	return balances;
+}
+
+async function fetchPromoCollectionBalance(activeUser, collection) {
+	if (!activeUser) return;
+
+	let res = await chain.post('/v1/chain/get_table_rows', {
+		code: PROMO_CONTRACT,
+		index_position: 1,
+		json: true,
+		limit: 10,
+		scope: collection.collection,
+		table: 'accounts',
+		lower_bound: activeUser.accountName,
+		upper_bound: activeUser.accountName
+	});
+	let ret = { balance: 0, staked: 0 };
+	let balance = 0.0;
+
+	if (res?.rows?.length) {
+		let shell = res.rows.find((acc) => acc.collected.includes('SHELL'));
+		if (shell) {
+			ret.balance = (parseInt(shell.collected.split(' ')[0].replace('.', '')) / 10000).toFixed(2);
+			ret.staked = shell.staked;
+		} else {
+			ret.balance = 0.0;
+		}
+	} else {
+		ret.balance = 0.0;
+	}
+
+	return ret;
+}
+
+async function fetchCollections(contract = STAKING_CONTRACT) {
+	let res = await chain.post('/v1/chain/get_table_rows', {
+		code: contract,
+		index_position: 1,
+		json: true,
+		limit: '100',
+		scope: contract,
+		table: 'collections'
+	});
+
+	let collections = res.rows;
+
+	if (collections) {
+		return collections;
+	}
+}
+
+async function fetchDrives(activeUser, collections) {
+	if (!collections) return;
+	if (!activeUser) return;
+
+	let res = await chain.post('/v1/chain/get_table_rows', {
+		code: STAKING_CONTRACT,
+		index_position: 2,
+		key_type: 'i128',
+		json: true,
+		limit: '100',
+		scope: collections[0].collection,
+		table: 'drives',
+		lower_bound: getUserAssetLower(activeUser.accountName),
+		upper_bound: getUserAssetUpper(activeUser.accountName)
+	});
+	let drives = res?.rows;
+	if (drives) {
+		return drives;
+	}
+}
+
+async function fetchStorage(activeUser, pool) {
+	if (!pool) return;
+
+	if (!activeUser) return;
+
+	let res = await chain.post('/v1/chain/get_table_rows', {
+		code: STAKING_CONTRACT,
+		index_position: 1,
+		json: true,
+		limit: 1,
+		scope: pool[0].collection,
+		table: 'storage',
+		lower_bound: activeUser.accountName,
+		upper_bound: activeUser.accountName
+	});
+
+	if (res?.rows?.length) {
+		return res?.rows[0];
+	}
+	return [];
+}
+
+async function fetchAssets(activeUser) {
+	if (!activeUser) return;
+
+	let assets = [];
+	let next = getUserAssetLower(activeUser.accountName);
+	let hasMore = true;
+
+	while (hasMore) {
+		const res = await fetchAssetsPage(activeUser, next);
+		if (res?.rows) {
+			res.rows.forEach((element) => {
+				assets.push(element);
+			});
+
+			hasMore = await res.more;
+			next = await res.next_key;
+		}
+		await resolveAfterMS(100);
+	}
+	return assets;
+}
+async function fetchAssetsPage(activeUser, next) {
+	if (!activeUser) return;
+
+	let res = await chain.post('/v1/chain/get_table_rows', {
+		code: STAKING_CONTRACT,
+		index_position: 2,
+		key_type: 'i128',
+		json: true,
+		limit: 200,
+		scope: STAKING_CONTRACT,
+		table: 'assets',
+		lower_bound: next,
+		upper_bound: getUserAssetUpper(activeUser.accountName)
+	});
+
+	return res;
+}
+async function fetchCraftOutcome(template_id) {
+	if (!template_id) return;
+
+	let res = await chain.post('/v1/chain/get_table_rows', {
+		code: CRAFTING_CONTRACT,
+		index_position: 1,
+		json: true,
+		limit: 1,
+		scope: CRAFTING_CONTRACT,
+		table: 'outcomes',
+		lower_bound: template_id,
+		upper_bound: template_id
+	});
+	let assets = res?.rows;
+	if (assets) {
+		return assets;
+	}
+}
+async function fetchPromoPoolAssets(activeUser) {
+	if (!activeUser) return;
+
+	let assets = [];
+	let next = getUserAssetLower(activeUser.accountName);
+	let hasMore = true;
+
+	while (hasMore) {
+		const res = await fetchPromoPoolAssetsPage(activeUser, next);
+		if (res?.rows) {
+			res.rows.forEach((element) => {
+				assets.push(element);
+			});
+
+			hasMore = await res.more;
+			next = await res.next_key;
+		}
+		await resolveAfterMS(100);
+	}
+	return assets;
+}
+async function fetchPromoPoolAssetsPage(activeUser, next) {
+	if (!activeUser) return;
+
+	let res = await chain.post('/v1/chain/get_table_rows', {
+		code: PROMO_CONTRACT,
+		index_position: 2,
+		key_type: 'i128',
+		json: true,
+		limit: 200,
+		scope: PROMO_CONTRACT,
+		table: 'assets',
+		lower_bound: next,
+		upper_bound: getUserAssetUpper(activeUser.accountName)
+	});
+
+	return res;
+}
+async function fetchWeights(STAKING_CONTRACT) {
+	let res = await chain.post('/v1/chain/get_table_rows', {
+		code: STAKING_CONTRACT,
+		index_position: 1,
+		json: true,
+		limit: 10,
+		scope: STAKING_CONTRACT,
+		table: 'weights'
+	});
+	let weights = res?.rows;
+	if (weights) {
+		return weights;
+	}
+}
+
+async function fetchPoolDriveAssets(activeUser, collections) {
+	if (!collections || !collections[0].collection) return;
+	if (!activeUser) return;
+
+	let res = await atomicAssetsApi.getAssets(
+		activeUser.accountName,
+		collections[0].collection,
+		'flashdrive'
+	);
+
+	if (res?.success) {
+		return res;
+	}
+}
+async function fetchAllAssets(activeUser, collections) {
+	if (!collections || !collections[0].collection) return;
+	if (!activeUser) return;
+	let collectionNameArray = [];
+	collections.forEach((element) => {
+		collectionNameArray.push(element.collection);
+	});
+	let res = await atomicAssetsApi.getAssets(activeUser.accountName, collectionNameArray.join());
+
+	if (res?.success) {
+		return res;
+	}
+}
+async function fetchAtomicAssets(activeUser, collection) {
+	if (!collection) return;
+	if (!activeUser) return;
+
+	let res = await atomicAssetsApi.getAssets(
+		activeUser.accountName,
+		collection.collection,
+		collection.schema
+	);
+
+	if (res?.success) {
+		return res;
+	}
+}
+async function fetchOwnedByTemplate(activeUser, templateIds, collection) {
+	if (!templateIds) return;
+	if (!activeUser) return;
+
+	let res = await atomicAssetsApi.getAssetsByTemplate(
+		activeUser.accountName,
+		templateIds,
+		collection
+	);
+
+	if (res?.success) {
+		return res;
+	}
+}
+async function fetchPromos(activeUser, collections) {
+	if (!activeUser) return;
+	if (!collections) return;
+	let response = [];
+
+	for (let collection of collections) {
+		const res = await fetchAtomicAssets(activeUser, collection);
+		response.push({ collection: collection.collection, data: res.data });
+	}
+
+	return response;
+}
+
+async function checkTerms(activeUser) {
+	let res = await chain.post('/v1/chain/get_table_rows', {
+		code: STAKING_CONTRACT,
+		index_position: 1,
+		json: true,
+		limit: 1,
+		scope: STAKING_CONTRACT,
+		table: 'terms',
+		lower_bound: activeUser.accountName,
+		upper_bound: activeUser.accountName
+	});
+
+	let terms = res?.rows;
+	if (terms.length == 0) return false;
+	if (terms[0].user == activeUser.accountName) return true;
+	return false;
+}
+async function fetchClaims(id, scope = 'atomicpacksx') {
+	let res = await chain.post('/v1/chain/get_table_rows', {
+		code: scope,
+
+		json: true,
+		limit: 100,
+		scope: String(id),
+		table: 'unboxassets'
+	});
+
+	const claims = res?.rows;
+	return claims;
+}
+async function fetchNotClaimed(activeUser, scope = 'atomicpoolsx', externalNames = []) {
+	if (!activeUser.accountName) return;
+	let res = await chain.post('/v1/chain/get_table_rows', {
+		code: scope,
+		index_position: 2,
+		json: true,
+		key_type: 'name',
+		limit: 1000,
+		scope: scope,
+		table: 'claims',
+		lower_bound: activeUser.accountName,
+		upper_bound: activeUser.accountName
+	});
+
+	const claims = res?.rows;
+	const response = claims.filter((item) => {});
+	return claims;
+}
+
+async function fetchPackConfig(contract = 'atomicpacksx', template_id) {
+	if (!template_id) return;
+	let index_position = 1;
+	if (contract === 'atomicpacksx') index_position = 2;
+	let res = await chain.post('/v1/chain/get_table_rows', {
+		code: contract,
+		index_position,
+		json: true,
+		scope: contract,
+		key_type: 'i64',
+		table: 'packs',
+		lower_bound: template_id,
+		upper_bound: template_id
+	});
+
+	let config = res?.rows;
+
+	if (config) return config;
+	return false;
+}
+
+async function fetchChests(activeUser, collection) {
+	if (!collection || !collection[0].collection) return;
+	if (!activeUser) return;
+
+	let res = await atomicAssetsApi.getAssets(
+		activeUser.accountName,
+		collection[0].collection,
+		'chests'
+	);
+
+	if (res?.success) {
+		return res;
+	}
+}
+
+async function queryActiveSales() {
+	try {
+		let res = await chain.post('/v1/chain/get_table_rows', {
+			code: STORE_CONTRACT,
+			index_position: 2,
+			key_type: 'i128',
+			json: true,
+			limit: 100,
+			scope: STORE_CONTRACT,
+			table: 'sale',
+			lower_bound: getSalesLower(ACTIVE),
+			upper_bound: getSalesUpper(ACTIVE)
+		});
+
+		return res;
+	} catch (err) {
+		console.log(err.response);
+
+		console.log(JSON.stringify(err.response.data, null, 2));
+	}
+}
+
+async function queryInactiveSales() {
+	try {
+		let res = await chain.post('/v1/chain/get_table_rows', {
+			code: STORE_CONTRACT,
+			index_position: 2,
+			key_type: 'i128',
+			json: true,
+			limit: 100,
+			scope: STORE_CONTRACT,
+			table: 'sale',
+			lower_bound: getSalesLower(INACTIVE),
+			upper_bound: getSalesUpper(INACTIVE)
+		});
+		return res;
+	} catch (err) {
+		console.log(err.response);
+
+		console.log(JSON.stringify(err.response.data, null, 2));
+	}
+}
+async function getStoreItems() {
+	let sales = [];
+	const activeItems = await queryActiveSales();
+	for (let item of activeItems.rows) {
+		item.active = true;
+		sales.push(item);
+	}
+	const inactiveItems = await queryInactiveSales();
+	for (let item of inactiveItems.rows) {
+		item.active = false;
+		sales.push(item);
+	}
+	return sales;
+}
+async function fetchShopData(activeUser, mock = false) {
+	let sales = null;
+	if (mock) sales = mock;
+	else sales = await getStoreItems();
+	var res = {};
+	if (!sales) return [];
+	for await (let sale of sales) {
+		const templateData = await atomicAssetsApi.getTemplates(sale.collection, sale.itemtemplate);
+		sale.templateData = templateData.data;
+		if (activeUser.accountName) {
+			const sales = await fetchSaleStats(sale.sale_id, activeUser);
+			sale.userPurchased = sales;
+			const owned = await atomicAssetsApi.getTemplatesOfUser(
+				activeUser.accountName,
+				sale.itemtemplate
+			);
+			sale.ownedAssets = owned;
+			sale.user = activeUser.accountName;
+			const assetsData = await greenRabbitApi.fetchOwnedByTemplate(
+				activeUser,
+				[sale.itemtemplate],
+				sale.collection
+			);
+			sale.assetsData = assetsData.data;
+		}
+	}
+
+	res.sales = sales;
+	return res;
+}
+
+export const greenRabbitApi = {
+	fetchPoolAssets,
+	fetchAccount,
+	fetchBalance,
+	fetchCollections,
+	fetchDrives,
+	fetchStorage,
+	fetchAssets,
+	fetchWeights,
+	fetchPoolDriveAssets,
+	checkTerms,
+	fetchChests,
+	fetchPromos,
+	fetchPromoPoolAssets,
+	fetchPromoBalance,
+	fetchSales,
+	fetchSaleStats,
+	fetchOwnedByTemplate,
+	fetchPackConfig,
+	fetchClaims,
+	fetchShopData,
+	fetchNotClaimed,
+	fetchAllAssets,
+	fetchCraftLog,
+	fetchCraftOutcome
+};
