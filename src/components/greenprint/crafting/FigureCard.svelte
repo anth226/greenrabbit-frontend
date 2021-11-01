@@ -17,14 +17,14 @@
 >
 	{#if !data}
 		<div class="image-placeholder">
-			<div class="placeholder">+</div>
+			<div class="_placeholder">+</div>
 		</div>
 	{:else}
 		<div class="image">
 			<div class="remove"><img alt="Close button" src="/icons/close-btn.svg" /></div>
 			<img
 				alt="Crafting Component"
-				src="https://res.cloudinary.com/green-rabbit-holdings/image/upload/f_auto,q_auto/c_scale/v1/GreenRabbit/nfts/Qmcn4AXVbT4uyvjrRVswwmspx8WWaijy6GCBehj4Mvs819.png"
+				src="https://res.cloudinary.com/green-rabbit-holdings/image/upload/f_auto,q_auto/c_scale/GreenRabbit/nfts/Qmcn4AXVbT4uyvjrRVswwmspx8WWaijy6GCBehj4Mvs819.png"
 			/>
 		</div>
 	{/if}
@@ -114,7 +114,7 @@
 		margin: 0 auto;
 	}
 
-	.placeholder {
+	._placeholder {
 		width: 24px;
 		height: 24px;
 		border: 2px solid var(--primary-teal);
@@ -155,7 +155,7 @@
 			margin-top: 20px;
 			margin-bottom: 25px;
 		}
-		.placeholder {
+		._placeholder {
 			width: 41px;
 			height: 41px;
 			font-size: 28px;

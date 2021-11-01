@@ -180,7 +180,8 @@
 				}
 
 				if (
-					$craftingLog.current_craft.craft_fee_paid &&
+					($craftingLog.current_craft.craft_fee_paid ||
+						$craftingLog.current_craft.aux_slot.length) &&
 					($craftingLog.current_craft.spu_fee_paid ||
 						$craftingLog.current_craft.spu_fee == '0.0000 SHELL')
 				) {
@@ -242,24 +243,14 @@
 
 			setTimeout(async () => {
 				window.refreshCraftLogs(false, 2000, () => {
-					$craftingState = {
-						fourcomponent: {
-							slot1: null,
-							slot2: null,
-							slot3: null,
-							slot4: null,
-							aux: null,
-							status: 0
-						},
-						figurecrafting: { slot1: null, status: 0 }
-					};
+					$craftingState = JSON.parse(JSON.stringify(CRAFTING_STATE_INIT));
 					$craftingStep = 1;
 					close();
 				});
 			}, TRANSACTION_TIMEOUT_MS);
 		} catch (err) {
 			window.refreshCraftLogs(false, 2000, () => {});
-			window.pushToast(err.message, 'fa fa-exclamation-triangle ', '#e52659');
+			window.pushToast(err.message, 'error', 'Transaction error', 6);
 		}
 	};
 
@@ -318,17 +309,7 @@
 					close();
 					$craftingStep = 1;
 
-					$craftingState = {
-						fourcomponent: {
-							slot1: null,
-							slot2: null,
-							slot3: null,
-							slot4: null,
-							aux: null,
-							status: 0
-						},
-						figurecrafting: { slot1: null, status: 0 }
-					};
+					$craftingState = JSON.parse(JSON.stringify(CRAFTING_STATE_INIT));
 					$waitingConfirmationCrafting = false;
 				});
 				window.refreshAssets(false, 1);
@@ -336,7 +317,7 @@
 		} catch (err) {
 			$waitingConfirmationCrafting = false;
 			window.refreshCraftLogs(false, 2000, () => {});
-			window.pushToast(err.message, 'fa fa-exclamation-triangle ', '#e52659');
+			window.pushToast(err.message, 'error', 'Transaction error', 6);
 		}
 	}
 
@@ -495,7 +476,7 @@
 		} catch (err) {
 			console.log(err);
 			$waitingConfirmationCrafting = false;
-			window.pushToast(err.message, 'fa fa-exclamation-triangle ', '#e52659');
+			window.pushToast(err.message, 'error', 'Transaction error', 6);
 			return false;
 		}
 	}
@@ -513,17 +494,7 @@
 			$craftingStep = 4;
 			opts = { buildFailed: false, claimClick };
 		} else {
-			$craftingState = {
-				fourcomponent: {
-					slot1: null,
-					slot2: null,
-					slot3: null,
-					slot4: null,
-					aux: null,
-					status: 0
-				},
-				figurecrafting: { slot1: null, status: 0 }
-			};
+			$craftingState = JSON.parse(JSON.stringify(CRAFTING_STATE_INIT));
 
 			window.refreshAssets(false, 1);
 			window.refreshCraftLogs(false, 2000, () => {});
@@ -531,17 +502,7 @@
 			opts = {
 				buildFailed: true,
 				claimClick: () => {
-					$craftingState = {
-						fourcomponent: {
-							slot1: null,
-							slot2: null,
-							slot3: null,
-							slot4: null,
-							aux: null,
-							status: 0
-						},
-						figurecrafting: { slot1: null, status: 0 }
-					};
+					$craftingState = JSON.parse(JSON.stringify(CRAFTING_STATE_INIT));
 
 					$waitingConfirmationCrafting = false;
 					$craftingStep = 1;
@@ -621,7 +582,9 @@
 	let failureRate = 0;
 	let spuFee = 0;
 	$: {
-		handleUpdateCraftValues($craftingLog);
+		if ($now) {
+			handleUpdateCraftValues($craftingLog);
+		}
 	}
 
 	// function calcFailrate() {
@@ -658,7 +621,10 @@
 
 		// 55% for second attempt
 		if (attemptNo === 2) {
-			return 55;
+			return $now < maxAttemptChangeTimestamp ? 55 : 50;
+		}
+		if (attemptNo === 3) {
+			return $now < maxAttemptChangeTimestamp ? 70 : 60;
 		}
 
 		// 70% for third attempt
@@ -678,10 +644,10 @@
 	}
 
 	function onOkayAux(asset) {
-		$craftingState['fourcomponent']['aux'] = asset;
+		$craftingState['fourcomponent']['aux'] = asset[0];
 	}
-
-	let maxAttempts = 3;
+	let maxAttemptChangeTimestamp = 1635033600;
+	$: maxAttempts = $now < maxAttemptChangeTimestamp ? 3 : 5;
 	let remainingAttempts = maxAttempts;
 	$: remainingAttempts = $craftingLog
 		? $craftingLog?.first_craft + 60 * 60 * 24 < $now
@@ -785,14 +751,14 @@
 								})}
 							class="aux-port"
 						>
-							<div class="placeholder">+</div>
+							<div class="_placeholder">+</div>
 						</div>
 					{:else}
 						<div class="selected-aux">
 							<img
 								style="max-width:300px;object-fit:scale-down"
 								alt="Shellinium Credit"
-								src={'https://res.cloudinary.com/green-rabbit-holdings/image/upload/c_scale/v1/GreenRabbit/nfts/' +
+								src={'https://res.cloudinary.com/green-rabbit-holdings/image/upload/c_scale/GreenRabbit/nfts/' +
 									$craftingState.fourcomponent.aux.data.img +
 									'.png'}
 							/>
@@ -842,8 +808,8 @@
 			</div>
 		</div>
 		<div class="shell-failure-rate">
-			<p class="title">Failure rate</p>
-			<p class="value">{failureRate}%</p>
+			<p class="title">Success rate</p>
+			<p class="value">{100 - failureRate}%</p>
 
 			<DesktopTooltip text={TOOLTIP_FAILURE_RATE}>
 				<img
@@ -1000,7 +966,7 @@
 		width: 100%;
 		margin: 14px 0;
 	}
-	.placeholder {
+	._placeholder {
 		width: 27px;
 		height: 27px;
 		border: 2px solid var(--primary-teal);

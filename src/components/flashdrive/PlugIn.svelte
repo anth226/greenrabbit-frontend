@@ -39,7 +39,7 @@
 		<img class="add-drive-circle" src="/icons/add_usb.svg" alt="Flashdrive circles" />
 		<div class="teal plugin">Plug-in Flash Drive</div>
 	{:else}
-		<!-- 	<div class="div-anim">
+		<!-- <div class="div-anim">
 			<span /><span /><span /><span />
 		</div> -->
 		<!-- 	<div
@@ -52,26 +52,24 @@
 					(height / 100)},0.7) 0%, rgba(54, 255, 192, 0) 100%);"
 			/>
 		</div> -->
+		<img
+			class="flash-image"
+			alt="drive"
+			src="https://res.cloudinary.com/green-rabbit-holdings/image/upload/f_auto,q_auto/c_scale/GreenRabbit/nfts/{drive.media.split(
+				':'
+			)[1]}.png"
+		/>
 		<div class="info-wrapper">
-			<img
-				class="flash-image"
-				alt="flashdrive"
-				src="https://res.cloudinary.com/green-rabbit-holdings/image/upload/f_auto,q_auto/c_scale/v1/GreenRabbit/nfts/{drive.media.split(
-					':'
-				)[1]}.png"
-			/>
-			<div class="teal">Storage</div>
-			<div class="total-bits">{drive.space_used}/{drive.capacity} bits</div>
+			<div>Storage</div>
+			<div class="teal">{drive.space_used}/{drive.capacity} bits</div>
 		</div>
 		<div class="info-wrapper">
-			<div class="teal">Generating</div>
-
-			<div>{toFixedCurrency(power / 10000, 2)} Shell/h</div>
+			<div>Staked NFTs</div>
+			<div class="teal">{assets.length}</div>
 		</div>
-		<div class="info-wrapper">
-			<div class="teal">Staked NFTs</div>
-
-			<div>{assets.length}</div>
+		<div class="info-wrapper mt-20">
+			<div>Shell/h</div>
+			<div class="teal">{toFixedCurrency(power / 10000, 2)}</div>
 		</div>
 		<!-- 	<div class="info-wrapper">
 			<div
@@ -94,11 +92,9 @@
 		padding: 36px 12px !important;
 	}
 	.add-drive-circle {
-		width: 40px;
-		height: 40px;
-		/* background: url('/icons/add_usb.svg');  */
-		background-repeat: no-repeat;
-		margin: 0 auto 20px;
+		width: 60px;
+		height: 60px;
+		margin: 30px auto;
 	}
 	.filler-mask {
 		margin: -14px;
@@ -116,19 +112,19 @@
 		z-index: 0;
 	}
 	.flash-image {
-		width: 72px;
-		height: 72px;
 		object-fit: contain;
 		border: solid 3px #36ffc0;
 		background-color: #000;
 		border-radius: 50%;
 		position: absolute;
-		top: calc(0px - 72px / 2);
+		width: 127px;
+		height: 127px;
+		top: -64px;
+		left: 57px;
 	}
 	.teal {
 		color: var(--primary-teal);
 		white-space: nowrap;
-		margin: 0 auto;
 	}
 	.div-anim {
 		position: absolute;
@@ -147,16 +143,15 @@
 		height: 100%;
 	}
 	.wrapper-plugin {
+		width: 240px;
+		height: 240px;
+		font-size: 18px;
 		position: relative;
-		width: 155px;
-		height: 155px;
 		display: flex;
-		justify-content: flex-end;
 		flex-direction: column;
-
-		font-weight: 900;
-		font-size: 10px;
+		font-weight: 500;
 		padding: 14px;
+		padding-top: 90px;
 		color: var(--pure-white);
 		background-image: linear-gradient(to bottom, #343434, #0e0e0e), url('/icons/add_usb.svg');
 	}
@@ -164,19 +159,24 @@
 		box-shadow: 0 0 0 3px var(--primary-teal);
 		cursor: pointer;
 	}
+	.mt-20 {
+		margin-top: 16px;
+	}
 	.info-wrapper {
 		display: flex;
-		flex-direction: column;
 		align-items: center;
+		justify-content: space-between;
 		z-index: 1;
 		margin-bottom: 4px;
 	}
 	.info-wrapper:last-child {
 		margin-bottom: 0;
 	}
-	/* 	.info-wrapper div :first-of-type {
-		margin-bottom: 14px;
-	} */
+	.plugin {
+		font-size: 20px;
+		margin: 0 auto;
+		font-weight: 700;
+	}
 	.wrapper-plugin span {
 		position: absolute;
 	}
@@ -220,7 +220,6 @@
 		-webkit-animation: snake-animate4 4s linear infinite;
 		animation: snake-animate4 4s linear infinite;
 	}
-
 	@-webkit-keyframes snake-animate1 {
 		0% {
 			transform: translateX(-100%);
@@ -229,7 +228,6 @@
 			transform: translateX(100%);
 		}
 	}
-
 	@keyframes snake-animate1 {
 		0% {
 			transform: translateX(-100%);
@@ -286,38 +284,32 @@
 			transform: translateY(100%);
 		}
 	}
-	@media (min-width: 1024px) {
+
+	@media (max-width: 768px) {
 		.wrapper-plugin {
-			width: 240px;
-			height: 240px;
-			font-size: 16px !important;
+			width: 160px;
+			height: 180px;
+			font-size: 14px;
+			padding: 10px;
+			padding-top: 65px;
 		}
-
 		.add-drive-circle {
-			width: 60px;
-			height: 60px;
-
-			left: 0;
-			right: 0;
-			top: 0;
-			bottom: 0;
-			margin: auto;
-		}
-
-		.plugin {
-			font-size: 20px;
-		}
-
-		.total-bits {
-			/* margin-bottom: 21px; */
+			width: 40px;
+			height: 40px;
+			margin: 12px auto;
 		}
 
 		.flash-image {
-			width: 127px;
-			height: 127px;
-			top: calc(0px - 127px / 2);
+			width: 72px;
+			height: 72px;
+			top: -20px;
+			left: 43px;
+		}
+		.plugin {
+			font-size: 16px;
 		}
 	}
+
 	.store-loader-wrap {
 		display: flex;
 		justify-content: center;

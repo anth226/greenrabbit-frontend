@@ -24,6 +24,7 @@
 		{ name: 'Current month', id: 3, matcher: 'current month' },
 		{ name: 'Previous month', id: 3, matcher: 'previous month' }
 	];
+
 	let selectedType;
 	let x = 200;
 	const lastUpdate = async () => {
@@ -34,12 +35,30 @@
 		const date = new Date(data.lastSync * 1000);
 		updatedAt = date;
 	};
-
+	let masterTab = 'crafting';
 	let updatedAt = null;
-	const getData = async (craft_type, timeframe, outcome, overall = false) => {
-		const res = await fetch(
-			`https://api.greenrabbitgame.io/v1/crafting/leaderboard?craft_type=${craft_type}&timeframe=${timeframe}&outcome=${outcome}`
-		);
+	const getData = async (
+		craft_type,
+		timeframe,
+		outcome,
+		overall = false,
+		category = 'crafting'
+	) => {
+		if (category == 'boost' && !overall)
+			var endpoint = `https://api.greenrabbitgame.io/v1/${category}/leaderboard?rarity=${rarity}&totem=${totem}&timeframe=${timeframe}&outcome=common`;
+		if (category == 'boost' && overall)
+			var endpoint = `https://api.greenrabbitgame.io/v1/${category}/leaderboard?timeframe=${timeframe}&outcome=common`;
+		else if (category == 'gpfusion' && !overall)
+			var endpoint = `https://api.greenrabbitgame.io/v1/fusion/leaderboard?rarity=${rarity}&timeframe=${timeframe}&outcome=${outcome}&fusion_type=Greenprint`;
+		else if (category == 'gpfusion' && overall)
+			var endpoint = `https://api.greenrabbitgame.io/v1/fusion/leaderboard?timeframe=${timeframe}&outcome=${outcome}&fusion_type=Greenprint`;
+		else if (category == 'orbfusion' && !overall)
+			var endpoint = `https://api.greenrabbitgame.io/v1/fusion/leaderboard?rarity=${rarity}&timeframe=${timeframe}&fusion_type=Orb`;
+		else if (category == 'orbfusion' && overall)
+			var endpoint = `https://api.greenrabbitgame.io/v1/fusion/leaderboard?timeframe=${timeframe}&fusion_type=Orb`;
+		else if (category == 'crafting')
+			var endpoint = `https://api.greenrabbitgame.io/v1/${category}/leaderboard?craft_type=${craft_type}&timeframe=${timeframe}&outcome=${outcome}`;
+		const res = await fetch(endpoint);
 		const resData = await res.json();
 		if (resData) {
 			if (overall) overallData = resData;
@@ -58,15 +77,25 @@
 		'3d mythic': '3D Mythic'
 	};
 	let activeCat = '4 comp';
-
+	let fusion_types = ['Greenprint', 'Orb'];
+	let fusion_type = 'Greenprint';
+	let rarities = ['Common', 'Uncommon', 'Epic', 'Legendary', 'Mythic'];
+	let rarity = 'Common';
+	let totems = ['Cat', 'Snake', 'Turtle', 'Rabbit'];
+	let totem = 'Cat';
 	$: {
-		if (activeCat && selectedType) {
+		if (activeCat && selectedType && masterTab && rarity && fusion_type) {
 			lastUpdate();
-			getData(craft_types[activeCat], selectedType.matcher, currentTab);
-			getData('', selectedType.matcher, currentTab, true);
+			getData(craft_types[activeCat], selectedType.matcher, currentTab, false, masterTab);
+			getData('', selectedType.matcher, currentTab, true, masterTab);
 		}
 	}
 	let innerWidth;
+	function setMasterTab(tab) {
+		if (tab != masterTab) {
+			masterTab = tab;
+		}
+	}
 </script>
 
 <svelte:window bind:innerWidth />
@@ -84,62 +113,361 @@
 			</div>
 		</div>
 	</div>
-	<div class="tab">
-		<div class="tab-wrap">
-			<div class="button-wrap">
-				<button
-					class="tablinks"
-					class:selected={currentTab === 'fail'}
-					on:click={() => {
-						x = 200;
-						currentTab = 'fail';
-					}}>FAILED GP CRAFTS</button
-				>
-			</div>
-			<div class="button-wrap">
-				<button
-					class="tablinks"
-					class:selected={currentTab === 'success'}
-					on:click={() => {
-						x = -200;
-						currentTab = 'success';
-					}}>SUCCESSFUL GP CRAFTS</button
-				>
-			</div>
-			{#if innerWidth > 1390}
+	<div class="leaderboard-bg">
+		<div class="btn-wrap">
+			<div class="buttons">
 				<div
-					style="position: relative;display:flex;justify-content:center;transition:all 0.2s;  right: {currentTab ===
-					'fail'
-						? '487'
-						: '185'}px; top: 39px;"
+					class="tab-btn"
+					on:click={() => {
+						setMasterTab('crafting');
+					}}
+					class:active-btn={masterTab == 'crafting'}
 				>
-					<div style="background:var(--primary-teal);width:76px;height:6px;" />
+					GREENPRINT CRAFTING
 				</div>
-			{/if}
+				<div
+					class="tab-btn"
+					on:click={() => {
+						setMasterTab('gpfusion');
+					}}
+					class:active-btn={masterTab == 'gpfusion'}
+				>
+					GREENPRINT FUSION
+				</div>
+				<div
+					class="tab-btn"
+					on:click={() => {
+						setMasterTab('orbfusion');
+					}}
+					class:active-btn={masterTab == 'orbfusion'}
+				>
+					ORB FUSION
+				</div>
+				<!-- 		<div
+					class="tab-btn"
+					on:click={() => {
+						setMasterTab('boost');
+					}}
+					class:active-btn={masterTab == 'boost'}
+				>
+					GREENPRINT BOOSTING
+				</div> -->
+			</div>
 		</div>
+
+		{#if masterTab == 'crafting'}
+			<div class="tab">
+				<div class="tab-wrap">
+					<div class="button-wrap">
+						<button
+							class="tablinks"
+							class:selected={currentTab === 'fail'}
+							on:click={() => {
+								x = 200;
+								currentTab = 'fail';
+							}}>FAILED GP CRAFTS</button
+						>
+					</div>
+					<div class="button-wrap">
+						<button
+							class="tablinks"
+							class:selected={currentTab === 'success'}
+							on:click={() => {
+								x = -200;
+								currentTab = 'success';
+							}}>SUCCESSFUL GP CRAFTS</button
+						>
+					</div>
+					{#if innerWidth > 1390}
+						<div
+							style="position: relative;display:flex;justify-content:center;transition:all 0.2s;  right: {currentTab ===
+							'fail'
+								? '487'
+								: '185'}px; top: 39px;"
+						>
+							<div style="background:var(--primary-teal);width:76px;height:6px;" />
+						</div>
+					{/if}
+				</div>
+			</div>
+			{#if data && overallData}{#if currentTab === 'fail'}
+					<div
+						class="table-wrapper"
+						in:fly={{ x: -x, delay: 200, duration: 190 }}
+						out:fly={{ x, duration: 190 }}
+					>
+						<LeaderboardTable bind:masterTab data={overallData} />
+						<LeaderboardTable
+							bind:masterTab
+							bind:activeCat
+							bind:rarity
+							bind:totem
+							{data}
+							view="category"
+						/>
+					</div>
+				{:else}
+					<div
+						class="table-wrapper"
+						in:fly={{ x: -x, delay: 200, duration: 190 }}
+						out:fly={{ x, duration: 190 }}
+					>
+						<LeaderboardTable bind:masterTab data={overallData} type="success" />
+						<LeaderboardTable
+							bind:masterTab
+							bind:activeCat
+							bind:rarity
+							bind:totem
+							{data}
+							view="category"
+							type="success"
+						/>
+					</div>
+				{/if}{/if}
+		{:else if masterTab == 'orbfusion'}
+			<!-- 	<div class="tab">
+				<div class="tab-wrap">
+					<div class="button-wrap">
+						<button
+							class="tablinks"
+							class:selected={currentTab === 'fail'}
+							on:click={() => {
+								x = -200;
+								currentTab = 'fail';
+							}}>SUCCESSFUL FUSIONS</button
+						>
+					</div>
+					{#if innerWidth > 1390}
+						<div
+							style="position: relative;display:flex;justify-content:center;transition:all 0.2s;  right: {currentTab ===
+							'fail'
+								? '487'
+								: '185'}px; top: 39px;"
+						>
+							<div style="background:var(--primary-teal);width:76px;height:6px;" />
+						</div>
+					{/if}
+				</div>
+			</div> -->
+			{#if data && overallData}{#if currentTab === 'fail'}
+					<div
+						class="table-wrapper"
+						in:fly={{ x: -x, delay: 200, duration: 190 }}
+						out:fly={{ x, duration: 190 }}
+					>
+						<LeaderboardTable bind:masterTab data={overallData} />
+						<LeaderboardTable
+							bind:masterTab
+							bind:activeCat
+							bind:rarity
+							bind:totem
+							bind:fusion_type
+							{data}
+							view="category"
+						/>
+					</div>
+				{:else}
+					<div
+						class="table-wrapper"
+						in:fly={{ x: -x, delay: 200, duration: 190 }}
+						out:fly={{ x, duration: 190 }}
+					>
+						<LeaderboardTable bind:masterTab data={overallData} type="success" />
+						<LeaderboardTable
+							bind:masterTab
+							bind:activeCat
+							bind:rarity
+							bind:totem
+							bind:fusion_type
+							{data}
+							view="category"
+							type="success"
+						/>
+					</div>
+				{/if}{/if}
+		{:else if masterTab == 'gpfusion'}
+			<div class="tab">
+				<div class="tab-wrap">
+					<div class="button-wrap">
+						<button
+							class="tablinks"
+							class:selected={currentTab === 'fail'}
+							on:click={() => {
+								x = 200;
+								currentTab = 'fail';
+							}}>FAILED FUSIONS</button
+						>
+					</div>
+					<div class="button-wrap">
+						<button
+							class="tablinks"
+							class:selected={currentTab === 'success'}
+							on:click={() => {
+								x = -200;
+								currentTab = 'success';
+							}}>SUCCESSFUL FUSIONS</button
+						>
+					</div>
+					{#if innerWidth > 1390}
+						<div
+							style="position: relative;display:flex;justify-content:center;transition:all 0.2s;  right: {currentTab ===
+							'fail'
+								? '487'
+								: '185'}px; top: 39px;"
+						>
+							<div style="background:var(--primary-teal);width:76px;height:6px;" />
+						</div>
+					{/if}
+				</div>
+			</div>
+			{#if data && overallData}{#if currentTab === 'fail'}
+					<div
+						class="table-wrapper"
+						in:fly={{ x: -x, delay: 200, duration: 190 }}
+						out:fly={{ x, duration: 190 }}
+					>
+						<LeaderboardTable bind:masterTab data={overallData} />
+						<LeaderboardTable
+							bind:masterTab
+							bind:activeCat
+							bind:rarity
+							bind:totem
+							bind:fusion_type
+							{data}
+							view="category"
+						/>
+					</div>
+				{:else}
+					<div
+						class="table-wrapper"
+						in:fly={{ x: -x, delay: 200, duration: 190 }}
+						out:fly={{ x, duration: 190 }}
+					>
+						<LeaderboardTable bind:masterTab data={overallData} type="success" />
+						<LeaderboardTable
+							bind:masterTab
+							bind:activeCat
+							bind:rarity
+							bind:totem
+							bind:fusion_type
+							{data}
+							view="category"
+							type="success"
+						/>
+					</div>
+				{/if}{/if}
+		{:else if masterTab == 'boost'}
+			<div class="tab">
+				<div class="tab-wrap">
+					<div class="button-wrap">
+						<button
+							class="tablinks"
+							class:selected={currentTab === 'fail'}
+							on:click={() => {
+								x = 200;
+								currentTab = 'fail';
+							}}>FAILED GP BOOSTS</button
+						>
+					</div>
+					<div class="button-wrap">
+						<button
+							class="tablinks"
+							class:selected={currentTab === 'success'}
+							on:click={() => {
+								x = -200;
+								currentTab = 'success';
+							}}>SUCCESSFUL GP BOOSTS</button
+						>
+					</div>
+					{#if innerWidth > 1390}
+						<div
+							style="position: relative;display:flex;justify-content:center;transition:all 0.2s;  right: {currentTab ===
+							'fail'
+								? '487'
+								: '185'}px; top: 39px;"
+						>
+							<div style="background:var(--primary-teal);width:76px;height:6px;" />
+						</div>
+					{/if}
+				</div>
+			</div>
+			{#if data && overallData}{#if currentTab === 'fail'}
+					<div
+						class="table-wrapper"
+						in:fly={{ x: -x, delay: 200, duration: 190 }}
+						out:fly={{ x, duration: 190 }}
+					>
+						<LeaderboardTable bind:masterTab data={overallData} />
+						<LeaderboardTable
+							bind:masterTab
+							bind:activeCat
+							bind:rarity
+							bind:totem
+							{data}
+							view="category"
+						/>
+					</div>
+				{:else}
+					<div
+						class="table-wrapper"
+						in:fly={{ x: -x, delay: 200, duration: 190 }}
+						out:fly={{ x, duration: 190 }}
+					>
+						<LeaderboardTable bind:masterTab data={overallData} type="success" />
+						<LeaderboardTable
+							bind:masterTab
+							bind:activeCat
+							bind:rarity
+							bind:totem
+							{data}
+							view="category"
+							type="success"
+						/>
+					</div>
+				{/if}{/if}
+		{/if}
 	</div>
-	{#if data && overallData}{#if currentTab === 'fail'}
-			<div
-				class="table-wrapper"
-				in:fly={{ x: -x, delay: 200, duration: 190 }}
-				out:fly={{ x, duration: 190 }}
-			>
-				<LeaderboardTable data={overallData} />
-				<LeaderboardTable bind:activeCat {data} view="category" />
-			</div>
-		{:else}
-			<div
-				class="table-wrapper"
-				in:fly={{ x: -x, delay: 200, duration: 190 }}
-				out:fly={{ x, duration: 190 }}
-			>
-				<LeaderboardTable data={overallData} type="success" />
-				<LeaderboardTable bind:activeCat {data} view="category" type="success" />
-			</div>
-		{/if}{/if}
 </div>
 
 <style>
+	.buttons {
+		display: flex;
+		margin: 0 auto;
+		justify-content: center;
+		margin-bottom: 74px;
+		margin-top: 54px;
+	}
+	.btn-wrap {
+		width: 100%;
+	}
+	.tab-btn {
+		margin-left: 5px;
+		margin-right: 5px;
+		width: 239px;
+
+		height: 55px;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		text-align: center;
+		border: solid 2px #fff;
+		border-bottom: solid 6px #fff;
+		background-color: #161616;
+		color: white;
+		cursor: pointer;
+	}
+	.tab-btn:hover {
+		background-color: #2b2b2b;
+	}
+	.active-btn {
+		border: solid 2px #36ffc0;
+		border-bottom: solid 6px #36ffc0;
+	}
+	.leaderboard-bg {
+		border: solid 1px #3c3c3c;
+
+		background-image: linear-gradient(to bottom, #171717, #0f0f0f);
+	}
 	.wrapper {
 		margin-bottom: 100px;
 	}

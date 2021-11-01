@@ -1,11 +1,4 @@
-let IS_TESTNET = false;
-
-// const env = process.env.NODE_ENV;
-// if (env == 'development') {
-// 	IS_TESTNET = true;
-// } else if (env == 'production') {
-// 	IS_TESTNET = false;
-// }
+let IS_TESTNET = true;
 
 var var_WAX_BASE_ENDPOINT = 'https://api.wax.alohaeos.com';
 
@@ -17,8 +10,6 @@ var var_MAINNET_WAX_NODES = [
 	'https://wax.cryptolions.io',
 	'https://wax.csx.io',
 	'https://wax.dapplica.io',
-	'https://api-wax.eosarabia.net',
-	'https://api-wax.eosauthority.com',
 	'https://wax.eosdublin.io',
 	'https://wax.eoseoul.io',
 	'https://api.wax.eosdetroit.io',
@@ -28,8 +19,7 @@ var var_MAINNET_WAX_NODES = [
 	'https://api.wax.liquidstudios.io',
 	'https://wax.eosn.io',
 	'https://wax.pink.gg',
-	'https://api.waxsweden.org',
-	'https://api.waxeastern.cn'
+	'https://api.waxsweden.org'
 ];
 
 var var_TESTNET_WAX_NODES = [

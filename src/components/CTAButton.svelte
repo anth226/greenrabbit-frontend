@@ -12,6 +12,7 @@
 	export let width = '180px';
 	export let margin = '0';
 	export let loading = false;
+	export let boosting = false;
 </script>
 
 <a
@@ -29,7 +30,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-
+		z-index: 1;
 		width: var(--width);
 		height: var(--height);
 		font-size: var(--font-size);
@@ -42,7 +43,7 @@
 		text-align: center;
 		white-space: nowrap;
 		border: solid 2px #36ffc0;
-		background: linear-gradient(to right, #44be98 3%, #20906d 84%);
+		background: linear-gradient(to right, #44be98 100%, #20906d 100%);
 	}
 
 	.outlined {
@@ -51,7 +52,8 @@
 	}
 
 	.disabled {
-		opacity: 0.5;
+		background: #387562;
+		border: solid 2px #319576;
 		pointer-events: none;
 	}
 

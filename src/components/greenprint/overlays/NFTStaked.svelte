@@ -1,8 +1,12 @@
 <script>
 	import { goto } from '$app/navigation';
 	import CtaButton from 'src/components/CTAButton.svelte';
-	import { assetsStore, lastSelected, scrollToID } from 'src/stores/store';
+	import AwaitingAuth from 'src/components/flashdrive/AwaitingAuth.svelte';
+	import { activeUser, assetsStore, lastSelected, scrollToID } from 'src/stores/store';
+	import { STAKING_CONTRACT, TRANSACTION_TIMEOUT_MS } from 'src/utils/config';
+	import { getContext } from 'svelte';
 
+	const { open, close } = getContext('simple-modal');
 	let innerWidth;
 	export let nftData;
 	function selectNFT(id) {
@@ -11,6 +15,50 @@
 				nft.isSelected = true;
 				return;
 			}
+		}
+	}
+
+	async function handleUnstake(asset) {
+		if (!$activeUser) return;
+		open(AwaitingAuth);
+
+		let transaction = {
+			actions: [
+				{
+					account: STAKING_CONTRACT,
+					name: 'unstake',
+					authorization: [
+						{
+							actor: $activeUser.accountName,
+							permission: $activeUser.requestPermission
+						}
+					],
+					data: {
+						user: $activeUser.accountName,
+						drive_id: asset.isStaked,
+						asset_ids: [asset.asset_id]
+					}
+				}
+			]
+		};
+
+		try {
+			let res = await $activeUser.signTransaction(transaction, {
+				broadcast: true,
+				blocksBehind: 3,
+				expireSeconds: 60
+			});
+
+			setTimeout(() => {
+				window.refreshAssets(false, 0, (e) => {
+					if (e) {
+						close();
+					}
+				});
+			}, TRANSACTION_TIMEOUT_MS);
+		} catch (err) {
+			close();
+			window.pushToast(err.message, 'error', 'Transaction error', 6);
 		}
 	}
 </script>
@@ -25,15 +73,16 @@
 
 			<CtaButton
 				outlined
-				text="OPEN FLASH DRIVE"
+				text="UNSTAKE"
 				fontSize="14px"
 				width={innerWidth < 1024 ? '145px' : '160px'}
 				height="40px"
 				onClick={() => {
-					$lastSelected = 'staked';
+					handleUnstake(nftData);
+					/* 	$lastSelected = 'staked';
 					selectNFT(nftData.asset_id);
 					$scrollToID = nftData.asset_id;
-					goto(`/hub/${nftData.isStaked}`);
+					goto(`/hub/${nftData.isStaked}`); */
 				}}
 			/>
 		</div>

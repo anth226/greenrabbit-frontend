@@ -23,7 +23,7 @@
 			<img
 				class="image"
 				alt="robot"
-				src="https://res.cloudinary.com/green-rabbit-holdings/image/upload/f_auto,q_auto/c_scale/v1/GreenRabbit/nfts/{nftData
+				src="https://res.cloudinary.com/green-rabbit-holdings/image/upload/f_auto,q_auto/c_scale/GreenRabbit/nfts/{nftData
 					.data.img}.png"
 			/>
 			<div class="collection" style="border-color: var(--primary-teal);}">

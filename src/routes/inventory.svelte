@@ -8,7 +8,9 @@
 	import GreenprintCard from 'src/components/greenprint/GreenprintCard.svelte';
 	import NewInventoryCard from 'src/components/greenprint/NewInventoryCard.svelte';
 	import Input from 'src/components/Input.svelte';
-	import Footer from 'src/components/misc/Footer.svelte';
+
+	import CtaButton from 'src/components/CTAButton.svelte';
+	import { goto } from '$app/navigation';
 	let data = [];
 	let newBatch = [];
 	let page = 0;
@@ -75,7 +77,17 @@
 	<title>Inventory | GreenRabbit Game</title>
 </svelte:head>
 <div class="wrapper">
-	<h1>Inventory</h1>
+	<div class="flex-apart">
+		<h1>Inventory</h1>
+		<CtaButton
+			text="GR ASSET LOOKUP"
+			fontSize="14px"
+			onClick={() => {
+				goto('/explorer');
+			}}
+		/>
+	</div>
+
 	<!-- <div class="filters">
 		<FilterDropdown
 			margin="0 17px 0 0 "
@@ -150,6 +162,10 @@
 </div>
 
 <style>
+	.flex-apart {
+		display: flex;
+		justify-content: space-between;
+	}
 	h1 {
 		font-family: Lato;
 

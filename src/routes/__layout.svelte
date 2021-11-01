@@ -8,7 +8,7 @@
 
 <script>
 	export let key;
-
+	import NotSimpleModal from 'src/components/modals/NotSimpleModal.svelte';
 	import Cookies from 'js-cookie';
 	import { UALJs } from 'ual-plainjs-renderer';
 	import { Anchor } from 'ual-anchor';
@@ -19,7 +19,8 @@
 		STAKING_CONTRACT,
 		PROMO_CONTRACT,
 		REFRESH_BALANCE_SECONDS,
-		TESTNET
+		TESTNET,
+		CRAFTING_CONTRACT
 	} from '../utils/config';
 	import { onMount } from 'svelte';
 
@@ -57,12 +58,23 @@
 		waitingConfirmationCrafting,
 		craftingResult,
 		cookieStatus,
-		announcementSeen
+		announcementSeen,
+		isAssetsLoading,
+		waxBalance,
+		inventoryOpen
 	} from '../stores/store.js';
 
 	import Header from 'src/components/Header.svelte';
+	import Footer from 'src/components/Footer.svelte';
 	import { greenRabbitApi } from 'src/utils/green.rabbit.api';
-	import { isEmpty, isStaked, isPromoStaked, zeroPad, numberWithCommas } from 'src/utils/helpers';
+	import {
+		isEmpty,
+		isStaked,
+		isPromoStaked,
+		zeroPad,
+		numberWithCommas,
+		getBoostData
+	} from 'src/utils/helpers';
 	import getStakingData from 'src/utils/matcher';
 	import { browser } from '$app/env';
 
@@ -78,11 +90,12 @@
 	import { page } from '$app/stores';
 	import Toast from 'src/components/misc/Toast.svelte';
 	import TosModal from 'src/components/misc/TOSModal.svelte';
-	import Footer from 'src/components/misc/Footer.svelte';
+
 	import Timer from 'src/components/Timer.svelte';
 	import { CRAFTING_STATE_INIT } from 'src/utils/constants';
 	import CookieDisclaimer from 'src/components/misc/CookieDisclaimer.svelte';
 	import ImportantAnnouncement from 'src/components/misc/ImportantAnnouncement.svelte';
+	import { env } from 'src/utils/variables';
 
 	let ual;
 	const mock = [
@@ -207,7 +220,9 @@
 		$loadingString = 'Fetching Balance';
 		$loadingPercent = 6;
 		$userBalance = await greenRabbitApi.fetchBalance($activeUser);
+		const data2 = await greenRabbitApi.fetchWaxBalance($activeUser);
 
+		$waxBalance = data2;
 		$loadingString = 'Fetching Promo Collections';
 		$loadingPercent = 12;
 		const promoCollections = await greenRabbitApi.fetchCollections(PROMO_CONTRACT);
@@ -239,6 +254,7 @@
 		$loadingString = 'Fetching all assets';
 		$loadingPercent = 50;
 		const allAssets = await greenRabbitApi.fetchAllAssets($activeUser, collections);
+
 		$allAssetsStore = allAssets.data;
 
 		$loadingString = 'Checking Terms';
@@ -258,7 +274,7 @@
 		$assetsInPool = assetsPool;
 		$loadingString = 'Fetching Pool Assets';
 		$loadingPercent = 74;
-		const poolassets = await greenRabbitApi.fetchPoolAssets($activeUser, collections);
+		/* 	const poolassets = await greenRabbitApi.fetchPoolAssets($activeUser, collections); */
 
 		$loadingString = 'Fetching Drives';
 		$loadingPercent = 80;
@@ -274,14 +290,14 @@
 		$loadingString = 'Fetching Crafting Log';
 		$loadingPercent = 96;
 		const craftLog = await greenRabbitApi.fetchCraftLog($activeUser);
-
+		const outcomesMain = await greenRabbitApi.fetchOutcomes(CRAFTING_CONTRACT);
 		$craftingLog = craftLog;
 		$loadingString = 'Fetching Pool Weights';
 		$loadingPercent = 100;
 
 		const weightsMain = await greenRabbitApi.fetchWeights(STAKING_CONTRACT);
-		matchWeights(allAssets.data, weightsMain, assetsPool, true);
-		matchWeights(poolassets, weightsMain, assetsPool);
+		matchWeights(allAssets.data, weightsMain, assetsPool, true, outcomesMain);
+		matchWeights(allAssets.data, weightsMain, assetsPool);
 
 		callback(true);
 
@@ -364,7 +380,9 @@
 		$loadingString = 'Fetching Balance';
 		$loadingPercent = 6;
 		$userBalance = await greenRabbitApi.fetchBalance($activeUser);
+		const data2 = await greenRabbitApi.fetchWaxBalance($activeUser);
 
+		$waxBalance = data2;
 		$loadingString = 'Fetching Promo Balances';
 		$loadingPercent = 18;
 		const promoBalances = await greenRabbitApi.fetchPromoBalance(
@@ -428,7 +446,7 @@
 	async function loadAssets(callback) {
 		lastTime = Date.now();
 		$isDataLoading = true;
-
+		$isAssetsLoading = true;
 		if (!$activeUser.accountName) {
 			$userBalance = 0;
 		}
@@ -439,6 +457,7 @@
 		bumpLoadingPercent();
 
 		const weightsMain = await greenRabbitApi.fetchWeights(STAKING_CONTRACT);
+		const outcomesMain = await greenRabbitApi.fetchOutcomes(CRAFTING_CONTRACT);
 		bumpLoadingPercent();
 
 		$loadingString = 'Loading.';
@@ -446,6 +465,9 @@
 		let parallel1 = [
 			async function () {
 				$userBalance = await greenRabbitApi.fetchBalance($activeUser);
+				const data2 = await greenRabbitApi.fetchWaxBalance($activeUser);
+
+				$waxBalance = data2;
 				bumpLoadingPercent();
 			},
 			async function () {
@@ -526,13 +548,14 @@
 		const poolassets = await greenRabbitApi.fetchPoolAssets($activeUser, $collectionsStore);
 		bumpLoadingPercent();
 
-		matchWeights($allAssetsStore, weightsMain, $assetsInPool, true);
+		matchWeights($allAssetsStore, weightsMain, $assetsInPool, true, outcomesMain);
 		matchWeights(poolassets, weightsMain, $assetsInPool);
 
 		callback(true);
 
 		setTimeout(() => {
 			$isDataLoading = false;
+			$isAssetsLoading = false;
 		}, 300);
 	}
 	function addPercentageToDrives(drivesArray) {
@@ -561,7 +584,17 @@
 		}
 		return '';
 	}
-	async function matchWeights(assets, weights, stakedAssets, all = false) {
+	function matchOutcomes(asset, outcomes) {
+		for (let outcome in outcomes) {
+			if (
+				outcomes[outcome].totem == asset.data.Totem &&
+				outcomes[outcome].rarity == asset.data.Rarity
+			) {
+				return outcomes[outcome].base_attributes;
+			}
+		}
+	}
+	async function matchWeights(assets, weights, stakedAssets, all = false, outcomes = null) {
 		if (all) {
 		}
 		$loadingString = 'Matching weights';
@@ -580,6 +613,10 @@
 				asset.weight = 0;
 				asset.totem = getTotemByName(asset.name);
 				asset.size = 0;
+				if (asset.schema.schema_name == 'greenprints' && outcomes) {
+					asset.baseStats = matchOutcomes(asset, outcomes);
+					asset.bonusStats = getBoostData(asset);
+				}
 				var stakingData = {};
 				for (let e of weights) {
 					if (isEmpty(stakingData)) stakingData = getStakingData(asset, e.configs, e.schema);
@@ -630,10 +667,7 @@
 		$craftingStep = 1;
 		$waitingConfirmationCrafting = false;
 		$craftingResult = null;
-		$craftingState = {
-			fourcomponent: { slot1: null, slot2: null, slot3: null, slot4: null, aux: null, status: 0 },
-			figurecrafting: { slot1: null, status: 0 }
-		};
+		$craftingState = JSON.parse(JSON.stringify(CRAFTING_STATE_INIT));
 		goto('/');
 	}
 
@@ -671,7 +705,10 @@
 		$loadingString = 'Refreshing Balances';
 		$isDataLoading = true;
 		const bal = await greenRabbitApi.fetchBalance($activeUser);
+
+		const data2 = await greenRabbitApi.fetchWaxBalance($activeUser);
 		$userBalance = bal;
+		$waxBalance = data2;
 		setTimeout(() => {
 			$isDataLoading = false;
 			$loadingString = 'done';
@@ -683,6 +720,8 @@
 				$loadingString = 'Refreshing Balances';
 				$isDataLoading = true;
 				const bal = await greenRabbitApi.fetchBalance($activeUser);
+				const data2 = await greenRabbitApi.fetchWaxBalance($activeUser);
+				$waxBalance = data2;
 				$userBalance = bal;
 				setTimeout(() => {
 					$isDataLoading = false;
@@ -695,7 +734,7 @@
 
 	onMount(() => {
 		$announcementSeen = !!localStorage.getItem('announcementSeen');
-
+		document.getElementById('version-number').innerHTML = 'v' + env.version + '-' + env.commit;
 		if (Cookies.get('policyAccepted') !== 'true') {
 			$cookieStatus = false;
 		}
@@ -717,6 +756,7 @@
  \\|_____|     |\\|_||_____|/ \\|_____| 
         |____/                      
 		
+		LFG!
 		`);
 			const myChain = {
 				chainId: WAX_CHAIN_ID,
@@ -736,8 +776,8 @@
 			const wax = new Wax([myChain]);
 			const style = `
       #ual-button {
-	display:none
-    `;
+		display:none
+    	`;
 			const myAppRoot = {
 				containerElement: document.getElementById('my-ual-app'),
 				buttonStyleOverride: style
@@ -769,6 +809,7 @@
 							document.body.style.overflow = 'scroll';
 							document.body.style.overflowX = 'hidden';
 							document.getElementById('loader').classList.add('hideloader');
+							$loadingPercent = 0;
 						}, 500);
 					}, 300);
 				}
@@ -965,34 +1006,57 @@
 {/if}
 <Timer />
 <Toast />
-
-<SimpleModal>
-	<Header />
-	{#if $activeUser.accountName}
-		{#if $termsAccepted == 'notaccepted'}
-			<TosModal />
-		{:else}
-			<div class="gradient-bg" />
-			<PageTransition refresh={key}>
-				<slot />
-			</PageTransition>
-		{/if}
-	{:else if $page.path.includes('store')}
-		<div class="gradient-bg" />
-		<PageTransition refresh={key}>
-			<slot />
-		</PageTransition>
-	{:else}
-		<LoginScreen />
-	{/if}
-</SimpleModal>
+<div class="wrapper">
+	<SimpleModal>
+		<NotSimpleModal
+			on:closed={() => {
+				$inventoryOpen = false;
+			}}
+		>
+			<Header />
+			{#if $activeUser.accountName}
+				{#if $termsAccepted == 'notaccepted'}
+					<TosModal />
+				{:else}
+					<div class="gradient-bg" />
+					<PageTransition refresh={key}>
+						<slot />
+					</PageTransition>
+				{/if}
+			{:else if $page.path.includes('explorer') || $page.path.includes('leaderboard') || $page.path.includes('store')}
+				<div class="gradient-bg" />
+				<PageTransition refresh={key}>
+					<slot />
+				</PageTransition>
+			{:else}
+				<LoginScreen />
+			{/if}
+			<div class="push" />
+		</NotSimpleModal></SimpleModal
+	>
+</div>
+<Footer />
 
 <GoogleAnalytics id="G-ZDQ4Y2V0FR" />
 
 <style>
-	.page-wrapper {
-		padding-bottom: 250px;
-		position: relative;
+	.wrapper {
+		min-height: 100vh;
+
+		margin-bottom: -66px;
+	}
+	.push {
+		height: 66px;
+	}
+	@media (max-width: 1024px) {
+		.wrapper {
+			min-height: 100vh;
+
+			margin-bottom: -165px;
+		}
+		.push {
+			height: 165px;
+		}
 	}
 	.gradient-bg {
 		height: 55px;

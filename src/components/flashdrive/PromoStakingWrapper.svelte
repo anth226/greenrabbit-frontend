@@ -34,7 +34,7 @@
 </script>
 
 <div class="wrapper" in:slide={{ delay: 400 }}>
-	<h1>Staking Promo NFTs</h1>
+	<h1>Promo NFTs</h1>
 	<div class="shell-info">
 		<div>
 			<span class="">Available for staking</span>
@@ -56,7 +56,7 @@
 	.wrapper {
 		color: white;
 		border-top: solid 1px #707070;
-		margin: 36px auto 0;
+		margin: 0 auto;
 		padding-top: 36px;
 		min-height: 150px;
 	}

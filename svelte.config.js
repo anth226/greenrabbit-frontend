@@ -2,6 +2,12 @@ import preprocess from 'svelte-preprocess';
 import vercel from '@sveltejs/adapter-vercel';
 import { resolve } from 'path';
 
+const version_number = {
+	version: process.env.npm_package_version,
+	commit: process.env.VERCEL_GIT_COMMIT_SHA
+		? process.env.VERCEL_GIT_COMMIT_SHA.substring(0, 7)
+		: 'dev'
+};
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
 	// Consult https://github.com/sveltejs/svelte-preprocess
@@ -13,6 +19,9 @@ const config = {
 		target: '#greenrabbit',
 		vite: {
 			mode: process.env.MODE || 'production',
+			define: {
+				version_number
+			},
 			resolve: {
 				alias: {
 					components: resolve('./src/components'),

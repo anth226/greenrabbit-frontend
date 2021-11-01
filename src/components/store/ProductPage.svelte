@@ -1,5 +1,5 @@
 <script>
-	import { activeUser, now, userBalance } from 'src/stores/store';
+	import { activeUser, now, userBalance, waxBalance } from 'src/stores/store';
 	import { atomicAssetsApi } from 'src/utils/atomic.assets.api';
 	import { STORE_CONTRACT, TOKEN_CONTRACT, TRANSACTION_TIMEOUT_MS } from 'src/utils/config';
 	import { slide, fade } from 'svelte/transition';
@@ -24,14 +24,20 @@
 	let dropSoldOut = false;
 	let dropUserMaxOut = false;
 	let timer = true;
+	let saleDescription = '';
 	$: {
 		dropEnded = hasDropEnded($now);
 		dropSoldOut = !(nftData.maxcollect == 0) && nftData.collected >= nftData.maxcollect;
+		try {
+			saleDescription = JSON.parse(nftData.display_data).description || '';
+		} catch {
+			console.error('No sale description');
+		}
 
 		dropUserMaxOut =
 			nftData.indivmax == 0 ? false : Number(nftData.userPurchased?.counter) >= nftData.indivmax;
 	}
-
+	$: currency = nftData.itemcost.split(' ')[1];
 	function hasDropEnded(time) {
 		if (!nftData.active) return true;
 		if (nftData.endtime == 0) return false;
@@ -43,23 +49,41 @@
 	async function handleBuy() {
 		let actions = [];
 		timer = false;
-		actions.push({
-			account: TOKEN_CONTRACT,
-			name: 'transfer',
-			authorization: [
-				{
-					actor: $activeUser.accountName,
-					permission: $activeUser.requestPermission
+		if (currency == 'SHELL') {
+			actions.push({
+				account: TOKEN_CONTRACT,
+				name: 'transfer',
+				authorization: [
+					{
+						actor: $activeUser.accountName,
+						permission: $activeUser.requestPermission
+					}
+				],
+				data: {
+					from: $activeUser.accountName,
+					to: STORE_CONTRACT,
+					quantity: (nftData.itemcost.split(' ')[0] * selectedQuantity).toFixed(4) + ' SHELL',
+					memo: String(nftData.sale_id) + '|' + selectedQuantity
 				}
-			],
-			data: {
-				from: $activeUser.accountName,
-				to: STORE_CONTRACT,
-				quantity: (nftData.itemcost.split(' ')[0] * selectedQuantity).toFixed(4) + ' SHELL',
-				memo: String(nftData.sale_id) + '|' + selectedQuantity
-			}
-		});
-
+			});
+		} else {
+			actions.push({
+				account: 'eosio.token',
+				name: 'transfer',
+				authorization: [
+					{
+						actor: $activeUser.accountName,
+						permission: $activeUser.requestPermission
+					}
+				],
+				data: {
+					from: $activeUser.accountName,
+					to: STORE_CONTRACT,
+					quantity: (nftData.itemcost.split(' ')[0] * selectedQuantity).toFixed(8) + ' ' + currency,
+					memo: String(nftData.sale_id) + '|' + selectedQuantity
+				}
+			});
+		}
 		if (actions.length) {
 			open(AwaitingAuth);
 			let transaction = { actions };
@@ -72,6 +96,7 @@
 
 				setTimeout(() => {
 					setTimeout(() => {
+						window.pushToast('Item purchased', 'success', 'Transaction success', 6);
 						window.getStoreData(true, (e) => {
 							close();
 							window.refreshBalance();
@@ -81,17 +106,19 @@
 			} catch (err) {
 				timer = true;
 				close();
-				window.pushToast(err.message, 'fa fa-exclamation-triangle ', '#e52659');
+				window.pushToast(err.message, 'error', 'Transaction error', 6);
 			}
 		}
 	}
 
 	let priceCheck;
 	$: priceCheck =
-		Number($userBalance) < selectedQuantity * parseFloat(nftData.itemcost.split(' ')[0]);
+		currency == 'SHELL'
+			? Number($userBalance) < selectedQuantity * parseFloat(nftData.itemcost.split(' ')[0])
+			: Number($waxBalance) < selectedQuantity * parseFloat(nftData.itemcost.split(' ')[0]);
 
 	let startTime = nftData.starttime;
-
+	$: active = nftData.active;
 	$: {
 		if (nftData) {
 			if (nftData.individual_limit_cooldown > 0 && nftData.userPurchased?.last_buy_time) {
@@ -118,6 +145,10 @@
 
 		return 0;
 	}
+	$: saleImg =
+		nftData.templateData?.template_id == '336783'
+			? 'QmWG5fBb7mLoXUy8mfsK6DXxmEA1YzRdgtR5rnCLuz3432'
+			: nftData.templateData?.immutable_data.img;
 </script>
 
 <svelte:head>
@@ -139,8 +170,8 @@ margin-bottom: 31px;"
 	<div in:slide={{ delay: 450 }} class="image-container">
 		<img
 			class="image"
-			alt="robot"
-			src={'https://ipfs.io/ipfs/' + nftData.templateData.immutable_data.img}
+			alt={nftData.templateData?.name}
+			src={'https://greenrabbit.mypinata.cloud/ipfs/' + saleImg}
 		/>
 	</div>
 
@@ -156,7 +187,8 @@ margin-bottom: 31px;"
 			<div class="price" in:slide={{ delay: 450 }}>
 				<p>Price</p>
 				<p class="shell-price">
-					{getFormattedCost(nftData)} SHELL
+					{getFormattedCost(nftData)}
+					{currency}
 				</p>
 			</div>
 		</div>
@@ -179,7 +211,8 @@ margin-bottom: 31px;"
 						<div class="shell">
 							<p>Total price</p>
 							<p class="shell-price">
-								{getFormattedCost(nftData, selectedQuantity)} SHELL
+								{getFormattedCost(nftData, selectedQuantity)}
+								{currency}
 							</p>
 						</div>
 					</div>
@@ -194,6 +227,8 @@ margin-bottom: 31px;"
 										? 'sold out'
 										: dropUserMaxOut
 										? 'max bought'
+										: !active
+										? 'Inactive'
 										: 'buy'}
 									start={nftData.starttime}
 									end={nftData.endtime}
@@ -213,15 +248,19 @@ margin-bottom: 31px;"
 									? 'sold out'
 									: dropUserMaxOut
 									? 'max bought'
+									: !active
+									? 'Inactive'
 									: 'buy'}
-								disabledFully={dropEnded || dropSoldOut || dropUserMaxOut || priceCheck}
+								disabledFully={dropEnded || dropSoldOut || dropUserMaxOut || priceCheck || !active}
 								end={nftData.endtime}
 								width="192px"
 								onClick={handleBuy}
 							/>
 						{/if}
 						{#if priceCheck}
-							<span class="shell-error">Insufficient Shellinium</span>
+							<span class="shell-error"
+								>Insufficient {currency == 'SHELL' ? 'Shellinium' : 'WAX'}</span
+							>
 						{/if}
 					</div>
 				</div>
@@ -252,6 +291,7 @@ margin-bottom: 31px;"
 					<div class="description">
 						<p class="title">Description</p>
 						<p class="text">
+							{saleDescription}
 							{nftData.templateData.immutable_data.Description}
 						</p>
 					</div>
@@ -260,6 +300,7 @@ margin-bottom: 31px;"
 					<div class="description">
 						<p class="title">Description</p>
 						<p class="text">
+							{saleDescription}
 							{nftData.templateData.immutable_data.description}
 						</p>
 					</div>

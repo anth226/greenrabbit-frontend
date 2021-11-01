@@ -3,17 +3,27 @@ export const IPFS_URL_TWO = 'https://ipfs.io/ipfs/';
 export const ATOMIC_ASSET_URL = 'https://wax.atomichub.io/explorer/asset/';
 
 export const TOOLTIP_FAILURE_RATE = {
-	title: 'Failure rate',
+	title: 'Success rate',
 	text:
-		'When crafting a Greenprint, you will have a certain probability of failure on each attempt. The higher the crafting attempt within a 24 hour period, the higher the potential failure rate. This rate outlines what your current potential failure rate will be. Should your attempt fail, you will be refunded any base Shellinium costs, however you will not be refunded any of the SPU costs and your NFTs will go onto 12 hour cooldown.'
+		'When crafting a Greenprint, you will have a certain probability of failure on each attempt. The higher the crafting attempt within a 24 hour period, the higher the potential failure rate. This rate outlines what your current potential failure rate will be. Should your attempt fail, you will not be refunded any base Shellinium costs or any of the SPU costs and your NFTs will go onto 12 hour cooldown.'
 };
 
 export const TOOLTIP_SHELLINIUM = {
 	title: 'Shellinium',
 	text:
-		'This displays the base Shellinium cost that you will incur should you be successful in the crafting attempt once you have selected your desired NFT(s) to craft with. If you are unsuccessful in your attempt, this Shellinium cost will be refunded to you.'
+		'This displays the base Shellinium cost that you will incur should you be successful in the crafting attempt once you have selected your desired NFT(s) to craft with. Whether your attempt is successful or a failure, you will still incur this base Shellinium cost.'
+};
+export const TOOLTIP_SHELLINIUM_BOOST = {
+	title: 'Shellinium',
+	text:
+		'This displays the base Shellinium cost that you will incur for your boosting attempt, once you have selected your desired NFTs to boost with. Regardless of outcome, this base Shellinium cost will not be returned and will be consumed by the process.'
 };
 
+export const TOOLTIP_SUCCESS_RATE = {
+	title: 'Success rate',
+	text:
+		"Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled"
+};
 export const TOOLTIP_POWER_COST = {
 	title: 'SPU power cost',
 	text:
@@ -22,5 +32,33 @@ export const TOOLTIP_POWER_COST = {
 
 export const CRAFTING_STATE_INIT = {
 	fourcomponent: { slot1: null, slot2: null, slot3: null, slot4: null, aux: null, status: 0 },
-	figurecrafting: { slot1: null, status: 0 }
+	figurecrafting: { slot1: null, status: 0 },
+	boostingcrafting: { slot1: null, slot2: null, status: 0 },
+	fusionCrafting: {
+		slot1: null,
+		slot2: null,
+		slot3: null,
+		slot4: null,
+		slot5: null,
+		slot6: null,
+		slot7: null,
+		slot8: null,
+		slot9: null,
+		slot10: null,
+		status: 0
+	},
+	orbFusionCrafting: {
+		slot1: null,
+		slot2: null,
+		slot3: null,
+		slot4: null,
+		slot5: null,
+		status: 0
+	}
 };
+export const STRENGTH_MAX = 450;
+export const RESILIENCE_MAX = 450;
+export const AGILITY_MAX = 400;
+export const SPEED_MAX = 400;
+export const LUCK_MAX = 45;
+export const INTELLECT_MAX = 135;

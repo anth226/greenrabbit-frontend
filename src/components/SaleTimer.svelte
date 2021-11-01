@@ -134,12 +134,12 @@
 
 	function getStarted() {
 		if (start == 0) return true;
-		return $now >= start;
+		return $now > start;
 	}
 
 	function getEnded() {
 		if (end == 0) return false;
-		return $now >= end;
+		return $now > end;
 	}
 
 	function activeDrop() {

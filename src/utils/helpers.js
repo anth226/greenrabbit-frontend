@@ -140,3 +140,60 @@ export function getFormattedCost(nftData, qty = 1) {
 		maximumFractionDigits: 4
 	});
 }
+
+export function getBoostData(nftData) {
+	let bonusStat = 0;
+
+	function boostString(stat) {
+		const base = Number(nftData.baseStats[stat.toLowerCase()]);
+		const real = Number(nftData.mutable_data[stat]);
+		const boost = real - base;
+		return { base, real, boost };
+	}
+
+	function calcBaseTotal() {
+		return (
+			Number(nftData.baseStats.agility) +
+			Number(nftData.baseStats.intellect) +
+			Number(nftData.baseStats.luck) +
+			Number(nftData.baseStats.resilience) +
+			Number(nftData.baseStats.speed) +
+			Number(nftData.baseStats.strength)
+		);
+	}
+	function calcRealTotal() {
+		return (
+			Number(nftData.mutable_data.Agility) +
+			Number(nftData.mutable_data.Intellect) +
+			Number(nftData.mutable_data.Luck) +
+			Number(nftData.mutable_data.Resilience) +
+			Number(nftData.mutable_data.Speed) +
+			Number(nftData.mutable_data.Strength)
+		);
+	}
+
+	if (nftData.schema.schema_name == 'greenprints') {
+		bonusStat = (calcRealTotal() * 100) / calcBaseTotal() - 100;
+		const stats = {
+			strength: boostString('Strength'),
+			resilience: boostString('Resilience'),
+			agility: boostString('Agility'),
+			speed: boostString('Speed'),
+			intellect: boostString('Intellect'),
+			luck: boostString('Luck'),
+			total: bonusStat
+		};
+		return stats;
+	}
+}
+export function dynamicSort(property) {
+	var sortOrder = -1;
+	if (property[0] === '-') {
+		sortOrder = 1;
+		property = property.substr(1);
+	}
+	return function (a, b) {
+		var result = a[property] < b[property] ? -1 : a[property] > b[property] ? 1 : 0;
+		return result * sortOrder;
+	};
+}

@@ -11,9 +11,9 @@
 <div in:fade={{ duration: 200, delay: 250 }} class="wrapper">
 	<div class="store-items">
 		<h1>The Shell Road</h1>
-		{#if $salesStore && $salesStore.length}
+		{#if $salesStore && $salesStore.length && $salesStore.filter((nftData) => nftData.show).length}
 			{#each $salesStore as nftData, i}
-				{#if nftData.active || nftData.pack}
+				{#if nftData.show}
 					<div in:fade={{ duration: 100, delay: 80 * i + 250 }}>
 						<StoreCard {nftData} />
 					</div>

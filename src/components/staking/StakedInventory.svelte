@@ -134,7 +134,7 @@
 			}, TRANSACTION_TIMEOUT_MS);
 		} catch (err) {
 			close();
-			window.pushToast(err.message, 'fa fa-exclamation-triangle ', '#e52659');
+			window.pushToast(err.message, 'error', 'Transaction error', 6);
 		}
 	}
 
@@ -185,7 +185,7 @@
 			}, TRANSACTION_TIMEOUT_MS);
 		} catch (err) {
 			close();
-			window.pushToast(err.message, 'fa fa-exclamation-triangle ', '#e52659');
+			window.pushToast(err.message, 'error', 'Transaction error', 6);
 		}
 	}
 	$: unstakeDisabled = $assetsStore.filter((asset) => asset.isStaked == drive.asset_id).length;
@@ -231,7 +231,7 @@
 			<div class="flash-name">
 				<img
 					alt="Flash Drive"
-					src="https://res.cloudinary.com/green-rabbit-holdings/image/upload/f_auto,q_auto/c_scale/v1/GreenRabbit/nfts/{drive.media.split(
+					src="https://res.cloudinary.com/green-rabbit-holdings/image/upload/f_auto,q_auto/c_scale/GreenRabbit/nfts/{drive.media.split(
 						':'
 					)[1]}.png"
 				/>

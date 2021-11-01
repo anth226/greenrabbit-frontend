@@ -1,6 +1,9 @@
 <script>
 	import ComponentCrafting from './ComponentCrafting.svelte';
 	import FigureCrafting from './FigureCrafting.svelte';
+	import BoostingCrafting from './BoostingCrafting.svelte';
+	import FusionCrafting from './FusionCrafting.svelte';
+	import OrbFusionCrafting from './OrbFusionCrafting.svelte';
 
 	import { afterUpdate, getContext, onMount } from 'svelte';
 	import MobileGreenPrintInventory from '../overlays/MobileGreenPrintInventory.svelte';
@@ -34,7 +37,6 @@
 
 	onMount(() => {
 		innerWidth = window.innerWidth;
-
 		stylingCraftStatus =
 			innerWidth < 830
 				? {
@@ -59,7 +61,6 @@
 						},
 						styleContent: {
 							maxHeight: '100vh!important',
-
 							height: '100%',
 							width: '100%',
 							paddingRight: 0,
@@ -299,7 +300,7 @@
 	<!-- <GreenPrintInventory {allAssetsStore} bind:showGreenprintInventory /> -->
 	<div class="header">
 		<div class="header-title">
-			<h1>Greenprint Crafting</h1>
+			<h1>Crafting</h1>
 			<!-- <p class="help-btn">{innerWidth < 1240 ? '?' : 'How it works?'}</p> -->
 		</div>
 		<div class="tab">
@@ -314,6 +315,23 @@
 					class:selected={currentTab === 'Figure'}
 					on:click={(e) => (currentTab = 'Figure')}><span>3D FIGURE CRAFTING</span></button
 				>
+				<button
+					class="tablinks"
+					class:selected={currentTab === 'Fusion'}
+					on:click={(e) => (currentTab = 'Fusion')}><span>GREENPRINT FUSION</span></button
+				>
+
+				<button
+					class="tablinks"
+					class:selected={currentTab === 'Boosting'}
+					on:click={(e) => (currentTab = 'Boosting')}><span>Greenprint Boosting</span></button
+				>
+				<button
+					class="tablinks"
+					class:selected={currentTab === 'OrbFusion'}
+					on:click={(e) => (currentTab = 'OrbFusion')}
+					><span>ORB FUSION</span> <a href="#" class="new-tag">NEW</a></button
+				>
 			</div>
 		</div>
 	</div>
@@ -323,10 +341,45 @@
 	{:else if currentTab === 'Figure'}
 		<FigureCrafting />
 		<!-- disabled={selected == 0 || currentTab != 'Staked'} -->
+	{:else if currentTab === 'Boosting'}
+		<BoostingCrafting />
+		<!-- disabled={selected == 0 || currentTab != 'Staked'} -->
+	{:else if currentTab === 'Fusion'}
+		<FusionCrafting />
+	{:else if currentTab === 'OrbFusion'}
+		<OrbFusionCrafting />
 	{/if}
 </div>
 
 <style>
+	.new-tag {
+		width: 42px;
+
+		height: 22px;
+		padding: 3px 6px;
+
+		border-radius: 4px;
+
+		background-color: #ed4444;
+
+		font-size: 13px;
+
+		font-weight: bold;
+
+		font-stretch: normal;
+
+		font-style: normal;
+
+		line-height: normal;
+
+		letter-spacing: normal;
+
+		text-align: center;
+
+		color: #fff;
+		margin-top: -4px;
+		margin-left: 10px;
+	}
 	.wrapper {
 		color: white;
 		margin-top: 28px;
@@ -362,50 +415,57 @@
 	}
 
 	.tab button {
-		/* REMOVE DEFAULT STYLE */
 		background: none;
-		color: inherit;
-		border: none;
-		padding: 0;
-		font: inherit;
 		cursor: pointer;
-		outline: inherit;
-
-		/* NEW STYLE */
-
 		color: white;
 		font-size: 17px;
 		text-transform: uppercase;
-		max-width: 125px;
+		width: fit-content;
+		position: relative;
+		display: flex;
+		justify-content: center;
+
+		align-items: center;
+		min-width: 245px;
 	}
 
-	div > button.selected {
-		font-weight: 900;
-		border-bottom: 5px solid var(--primary-teal);
+	div > button.selected::after {
+		content: '';
+		background: var(--primary-teal);
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		height: 5px;
+		width: 70px;
+		margin-left: auto;
+		margin-right: auto;
 	}
 	.tab {
 		display: flex;
-		justify-content: space-evenly;
 		margin: 0 0;
+		width: 100vw;
 		border-bottom: solid 1px #707070;
-		margin-bottom: 32px;
+		overflow-y: auto;
 	}
 	.tab-wrap {
-		width: 375px;
 		display: flex;
-		justify-content: space-evenly;
+
 		min-height: 72px;
+
+		margin: 0 auto;
 	}
 	.tablinks {
-		font-size: 17px;
+		font-size: 18px;
+
+		font-weight: normal;
 		overflow: hidden;
 		-webkit-line-clamp: 2;
 		-webkit-box-orient: vertical;
 		display: -webkit-box;
-		width: 125px;
 	}
 	.tablinks span {
-		height: 42px;
+		height: 23px;
 		letter-spacing: -1px;
 		display: block;
 		line-height: 20px;
@@ -437,6 +497,26 @@
 			border: none;
 			white-space: nowrap;
 			right: 43px;
+		}
+		.tab-wrap {
+			width: 60%;
+			justify-content: space-evenly;
+		}
+		.tab button {
+			min-width: 245px;
+		}
+	}
+	@media (max-width: 1240px) {
+		.tab-wrap {
+			justify-content: space-between;
+		}
+	}
+	@media (max-width: 660px) {
+		.tab-wrap {
+			width: 98%;
+		}
+		.tab button {
+			min-width: 145px;
 		}
 	}
 </style>

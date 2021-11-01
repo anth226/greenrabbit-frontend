@@ -53,7 +53,7 @@
 				<div class="cta-open">
 					<img
 						alt="Pack"
-						src="https://res.cloudinary.com/green-rabbit-holdings/image/upload/f_auto,q_auto/c_scale/v1/GreenRabbit/nfts/Qmcx5gYseabrx8jiWNu3cXFmbzJKviRgqT7gLNK3X61Egx.png"
+						src="https://res.cloudinary.com/green-rabbit-holdings/image/upload/f_auto,q_auto/c_scale/GreenRabbit/nfts/Qmcx5gYseabrx8jiWNu3cXFmbzJKviRgqT7gLNK3X61Egx.png"
 					/>
 					<p>Click to open</p>
 				</div>
@@ -63,7 +63,7 @@
 					<div class="card">
 						<img
 							alt="Pack"
-							src="https://res.cloudinary.com/green-rabbit-holdings/image/upload/f_auto,q_auto/c_scale/v1/GreenRabbit/nfts/Qmcx5gYseabrx8jiWNu3cXFmbzJKviRgqT7gLNK3X61Egx.png"
+							src="https://res.cloudinary.com/green-rabbit-holdings/image/upload/f_auto,q_auto/c_scale/GreenRabbit/nfts/Qmcx5gYseabrx8jiWNu3cXFmbzJKviRgqT7gLNK3X61Egx.png"
 						/>
 						<p>Card Name</p>
 					</div>

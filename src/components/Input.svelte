@@ -7,18 +7,23 @@
 	export let width;
 	export let text;
 	export let margin = '0 8px 0 0';
+	export let type = 'text';
+	export let placeholder = 'NFT Name';
 </script>
 
 <div class="wrapper" bind:this={thisDropdown} style="--width:{width}; --margin:{margin};">
 	<p class="filter-name">{text}</p>
 	<div class="search-icon" />
-	<input type="text" placeholder="NFT Name" bind:value />
+	<input type="text" {placeholder} bind:value />
 </div>
 
 <style>
 	input {
 		background: black;
 		color: white;
+	}
+	input[type='number'] {
+		-moz-appearance: textfield;
 	}
 	input:focus-visible {
 		outline: none;

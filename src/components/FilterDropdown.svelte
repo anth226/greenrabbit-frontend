@@ -10,13 +10,14 @@
 	export let width;
 	export let text;
 	export let margin = '0 8px 0 0';
-
+	export let onChange = () => {};
 	function setIsOpen() {
 		isOpen = !isOpen;
 	}
 
 	function setItem(item) {
 		selected = item;
+		onChange();
 	}
 
 	onMount(() => {
@@ -38,7 +39,7 @@
 	on:click={setIsOpen}
 >
 	{#if text}<p class="filter-name">{text}</p>{/if}
-	{selected.name}
+	{selected ? selected.name : 'Choose'}
 	<svg
 		class={isOpen && 'arrow-closed'}
 		width="14px"
@@ -112,5 +113,12 @@
 	}
 	.open {
 		display: block;
+		max-height: 340px;
+		overflow-y: auto;
+	}
+	@media (max-width: 768px) {
+		.wrapper {
+			width: 150px;
+		}
 	}
 </style>

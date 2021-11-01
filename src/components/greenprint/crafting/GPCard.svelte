@@ -20,7 +20,7 @@
 	import InventoryMaster from '../overlays/InventoryMaster.svelte';
 	const { openInventory, closeInventory } = getContext('notsimple-modal');
 	function onOkay(asset) {
-		$craftingState[type][slot] = asset;
+		$craftingState[type][slot] = asset[0];
 	}
 
 	initialize({ cloud_name: 'green-rabbit-holdings' });
@@ -28,11 +28,19 @@
 	let source = nftData?.data.img || nftData?.data.video;
 	let src = `GreenRabbit/nfts/${source}.png`;
 
-	let imageSource = `http://res.cloudinary.com/green-rabbit-holdings/image/upload/q_auto/v1/GreenRabbit/nfts/${source}.png`;
+	let imageSource = `http://res.cloudinary.com/green-rabbit-holdings/image/upload/q_auto/GreenRabbit/nfts/${source}.png`;
 	let showImage = true;
 
 	$: source = nftData?.data.img || nftData?.data.video;
-	$: imageSource = `http://res.cloudinary.com/green-rabbit-holdings/image/upload/q_auto/v1/GreenRabbit/nfts/${source}.png`;
+	export let boosting = false;
+
+	$: if (boosting) {
+		imageSource = `./assets/${source}`;
+	} else {
+		imageSource = `http://res.cloudinary.com/green-rabbit-holdings/image/upload/q_auto/GreenRabbit/nfts/${source}.png`;
+	}
+
+	$: imageSource = `http://res.cloudinary.com/green-rabbit-holdings/image/upload/q_auto/GreenRabbit/nfts/${source}.png`;
 </script>
 
 <div
@@ -46,11 +54,20 @@
 				if (!nftData) {
 					/* $craftingState[type][slot] = $allAssetsStore[50]; */
 
-					openInventory(InventoryMaster, { filterType, slot, hasForm: true, onOkay });
+					openInventory(InventoryMaster, {
+						filterType,
+						slot,
+						hasForm: true,
+						onOkay,
+						cardType,
+						type,
+						boosting,
+						showAll: true
+					});
 				}
 			}}
 		>
-			<div class="placeholder">+</div>
+			<div class="_placeholder">+</div>
 		</div>
 	{:else}
 		<div class="image">
@@ -78,14 +95,16 @@
 			>
 				{nftData ? nftData.data.Rarity : 'RARITY'}
 			</div>
-			<div
-				class="totem"
-				style="--rarity-color:{nftData ? '#fff' : 'var(--grayed-out)'}; --is-disabled:{nftData
-					? '#fff'
-					: 'var(--grayed-out)'};"
-			>
-				{nftData ? nftData.totem : 'TOTEM'}
-			</div>
+			{#if filterType != 'orbs'}
+				<div
+					class="totem"
+					style="--rarity-color:{nftData ? '#fff' : 'var(--grayed-out)'}; --is-disabled:{nftData
+						? '#fff'
+						: 'var(--grayed-out)'};"
+				>
+					{nftData ? nftData.totem : 'TOTEM'}
+				</div>
+			{/if}
 		</div>
 		<p class="card-type">{cardType}</p>
 	</div>
@@ -156,7 +175,7 @@
 		object-fit: scale-down;
 	}
 
-	.placeholder {
+	._placeholder {
 		width: 24px;
 		height: 24px;
 		border: 2px solid var(--primary-teal);
@@ -196,8 +215,12 @@
 			display: flex;
 			margin-top: 20px;
 			margin-bottom: 25px;
+			justify-content: center;
 		}
-		.placeholder {
+		.bottom-card-info div {
+			margin: 0 5px;
+		}
+		._placeholder {
 			width: 41px;
 			height: 41px;
 			font-size: 28px;

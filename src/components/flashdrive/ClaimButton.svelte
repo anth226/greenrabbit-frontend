@@ -144,7 +144,7 @@
 			}, TRANSACTION_TIMEOUT_MS);
 		} catch (err) {
 			close();
-			window.pushToast(err.message, 'fa fa-exclamation-triangle ', '#e52659');
+			window.pushToast(err.message, 'error', 'Transaction error', 6);
 			/*   addToast(err.message, { appearance: 'error' })
       setAwaitingConfirmation(0) /////////SHOW ERROR TOAST */
 		}
@@ -167,40 +167,19 @@
 
 <style>
 	.wrapper {
-		background-color: black;
-
 		width: 100%;
-		bottom: 0;
-
-		height: 60px;
 		display: flex;
 		align-items: center;
 	}
 	button {
-		/* REMOVE DEFAULT STYLE */
-		background: none;
-		color: inherit;
-		border: none;
-		padding: 0;
-		font: inherit;
+		font-size: 16px;
+		font-weight: 700;
 		cursor: pointer;
-		outline: inherit;
-
-		/* NEW STYLE */
-		margin: 0 0 0 auto;
-		padding: 14px;
-		height: 50px;
-		width: 145px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
+		padding: 12px;
+		width: 100%;
 		color: white;
 		white-space: nowrap;
-
-		font-size: 14px;
-		font-weight: 900;
 		border: solid 1px #36ffc0;
-
 		background-image: linear-gradient(to right, #44be98 3%, #20906d 84%);
 	}
 

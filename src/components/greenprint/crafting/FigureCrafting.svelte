@@ -10,7 +10,8 @@
 	import {
 		TOOLTIP_FAILURE_RATE,
 		TOOLTIP_SHELLINIUM,
-		TOOLTIP_POWER_COST
+		TOOLTIP_POWER_COST,
+		CRAFTING_STATE_INIT
 	} from 'src/utils/constants';
 	import DesktopTooltip from '../overlays/DesktopTooltip.svelte';
 	import {
@@ -150,7 +151,7 @@
 	};
 
 	function onOkayAux(asset) {
-		$craftingState['figurecrafting']['aux'] = asset;
+		$craftingState['figurecrafting']['aux'] = asset[0];
 	}
 
 	let craftingInProgress = false;
@@ -185,7 +186,8 @@
 				}
 
 				if (
-					$craftingLog.current_craft.craft_fee_paid &&
+					($craftingLog.current_craft.craft_fee_paid ||
+						$craftingLog.current_craft.aux_slot.length) &&
 					($craftingLog.current_craft.spu_fee_paid ||
 						$craftingLog.current_craft.spu_fee == '0.0000 SHELL')
 				) {
@@ -390,7 +392,7 @@
 
 		// handle new users with no craft log or no figure selected
 		if (!$craftingLog || !gotFigure) {
-			failrate = 40; // default fail rate of 40%
+			failrate = 0; // default fail rate of 40%
 			spuFee = 0;
 			isBoosted = 0;
 			return;
@@ -449,24 +451,14 @@
 
 			setTimeout(async () => {
 				window.refreshCraftLogs(false, 2000, () => {
-					$craftingState = {
-						fourcomponent: {
-							slot1: null,
-							slot2: null,
-							slot3: null,
-							slot4: null,
-							aux: null,
-							status: 0
-						},
-						figurecrafting: { slot1: null, status: 0 }
-					};
+					$craftingState = JSON.parse(JSON.stringify(CRAFTING_STATE_INIT));
 					$craftingStepFigure = 1;
 					close();
 				});
 			}, TRANSACTION_TIMEOUT_MS);
 		} catch (err) {
 			window.refreshCraftLogs(false, 2000, () => {});
-			window.pushToast(err.message, 'fa fa-exclamation-triangle ', '#e52659');
+			window.pushToast(err.message, 'error', 'Transaction error', 6);
 		}
 	};
 
@@ -687,7 +679,7 @@
 			return true;
 		} catch (err) {
 			$waitingConfirmationCrafting = false;
-			window.pushToast(err.message, 'fa fa-exclamation-triangle ', '#e52659');
+			window.pushToast(err.message, 'error', 'Transaction error', 6);
 			return false;
 		}
 	}
@@ -705,17 +697,7 @@
 			$craftingStepFigure = 4;
 			opts = { buildFailed: false, claimClick };
 		} else {
-			$craftingState = {
-				fourcomponent: {
-					slot1: null,
-					slot2: null,
-					slot3: null,
-					slot4: null,
-					aux: null,
-					status: 0
-				},
-				figurecrafting: { slot1: null, status: 0 }
-			};
+			$craftingState = JSON.parse(JSON.stringify(CRAFTING_STATE_INIT));
 
 			window.refreshAssets(false, 1);
 			window.refreshCraftLogs(false, 2000, () => {});
@@ -723,17 +705,7 @@
 			opts = {
 				buildFailed: true,
 				claimClick: () => {
-					$craftingState = {
-						fourcomponent: {
-							slot1: null,
-							slot2: null,
-							slot3: null,
-							slot4: null,
-							aux: null,
-							status: 0
-						},
-						figurecrafting: { slot1: null, status: 0 }
-					};
+					$craftingState = JSON.parse(JSON.stringify(CRAFTING_STATE_INIT));
 
 					$waitingConfirmationCrafting = false;
 					$craftingStepFigure = 1;
@@ -799,17 +771,7 @@
 						close();
 						$craftingStepFigure = 1;
 
-						$craftingState = {
-							fourcomponent: {
-								slot1: null,
-								slot2: null,
-								slot3: null,
-								slot4: null,
-								aux: null,
-								status: 0
-							},
-							figurecrafting: { slot1: null, status: 0 }
-						};
+						$craftingState = JSON.parse(JSON.stringify(CRAFTING_STATE_INIT));
 						$waitingConfirmationCrafting = false;
 					});
 					window.refreshAssets(false, 1);
@@ -817,7 +779,7 @@
 			} catch (err) {
 				$waitingConfirmationCrafting = false;
 				window.refreshCraftLogs(false, 2000, () => {});
-				window.pushToast(err.message, 'fa fa-exclamation-triangle ', '#e52659');
+				window.pushToast(err.message, 'error', 'Transaction error', 6);
 			}
 		}
 	}
@@ -934,14 +896,14 @@
 								})}
 							class="aux-port"
 						>
-							<div class="placeholder">+</div>
+							<div class="_placeholder">+</div>
 						</div>
 					{:else}
 						<div class="selected-aux">
 							<img
 								style="max-width:300px;object-fit:scale-down"
 								alt="Shellinium Credit"
-								src={'https://res.cloudinary.com/green-rabbit-holdings/image/upload/c_scale/v1/GreenRabbit/nfts/' +
+								src={'https://res.cloudinary.com/green-rabbit-holdings/image/upload/c_scale/GreenRabbit/nfts/' +
 									$craftingState.figurecrafting.aux.data.img +
 									'.png'}
 							/>
@@ -992,8 +954,8 @@
 		</div>
 		<div class="shell-failure-rate">
 			<div>
-				<p class="title">Failure rate</p>
-				<p class="value">{failrate == 0 ? '-' : failrate - isBoosted * 2}%</p>
+				<p class="title">Success rate</p>
+				<p class="value">{failrate == 0 ? '-' : `${100 - (failrate - isBoosted * 2)}%`}</p>
 			</div>
 			{#if isBoosted}
 				<span class="shell-help">
@@ -1180,7 +1142,7 @@
 		width: 100%;
 		margin: 14px 0;
 	}
-	.placeholder {
+	._placeholder {
 		width: 27px;
 		height: 27px;
 		border: 2px solid var(--primary-teal);
@@ -1195,6 +1157,7 @@
 		left: 0;
 		right: 0;
 		margin: auto;
+		background-color: unset;
 	}
 	.aux {
 		padding: 0 14px;
@@ -1233,6 +1196,7 @@
 	}
 
 	.attempts {
+		margin-top: 10px;
 		padding: 0 18px;
 	}
 	.attempt-rarity {

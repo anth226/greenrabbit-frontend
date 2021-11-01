@@ -34,11 +34,11 @@
 	let source = nftData?.data.img || nftData?.data.video;
 	let src = `GreenRabbit/nfts/${source}.png`;
 
-	let imageSource = `http://res.cloudinary.com/green-rabbit-holdings/image/upload/f_auto,q_auto/v1/GreenRabbit/nfts/${source}.png`;
+	let imageSource = `http://res.cloudinary.com/green-rabbit-holdings/image/upload/f_auto,q_auto/GreenRabbit/nfts/${source}.png`;
 	let showImage = true;
 
 	$: source = nftData?.data.img || nftData?.data.video;
-	$: imageSource = `http://res.cloudinary.com/green-rabbit-holdings/image/upload/f_auto,q_auto/v1/GreenRabbit/nfts/${source}.png`;
+	$: imageSource = `http://res.cloudinary.com/green-rabbit-holdings/image/upload/f_auto,q_auto/GreenRabbit/nfts/${source}.png`;
 	import { getContext } from 'svelte';
 	import AwaitingAuth from './AwaitingAuth.svelte';
 	import { STAKING_CONTRACT, TRANSACTION_TIMEOUT_MS } from 'src/utils/config';
@@ -83,7 +83,7 @@
 			}, TRANSACTION_TIMEOUT_MS);
 		} catch (err) {
 			close();
-			window.pushToast(err.message, 'fa fa-exclamation-triangle ', '#e52659');
+			window.pushToast(err.message, 'error', 'Transaction error', 6);
 		}
 	}
 </script>

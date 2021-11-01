@@ -10,7 +10,7 @@ import {
 	UNBOXING_CONTRACT,
 	CRAFTING_CONTRACT
 } from './config';
-import { resolveAfterMS, resolveAfterSeconds } from './helpers';
+import { dynamicSort, resolveAfterMS, resolveAfterSeconds } from './helpers';
 
 const ACTIVE = 1;
 const INACTIVE = 0;
@@ -132,6 +132,93 @@ async function fetchCraftLog(activeUser) {
 	return null;
 }
 
+async function fetchFusionOutcome(activeUser, scope = 'greenprint') {
+	if (!activeUser) return;
+
+	let res = await chain.post('/v1/chain/get_table_rows', {
+		code: CRAFTING_CONTRACT,
+		index_position: 1,
+		json: true,
+		limit: 1,
+		scope,
+		table: 'fusions',
+		lower_bound: activeUser,
+		upper_bound: activeUser
+	});
+	if (res?.rows?.length) {
+		return res?.rows[0];
+	}
+	return null;
+}
+async function fetchBoostOutcome(activeUser) {
+	if (!activeUser) return;
+
+	let res = await chain.post('/v1/chain/get_table_rows', {
+		code: CRAFTING_CONTRACT,
+		index_position: 1,
+		json: true,
+		limit: 1,
+		scope: CRAFTING_CONTRACT,
+		table: 'gpboosts',
+		lower_bound: activeUser,
+		upper_bound: activeUser
+	});
+	if (res?.rows?.length) {
+		let result = res?.rows[0];
+		const greenprintData = await atomicAssetsApi.getAssetsById([result.greenprint]);
+		const orbData = await atomicAssetsApi.getAssetsById([result.orb]);
+		result.greenprintData = greenprintData.data[0];
+		result.orb = orbData.data[0];
+		return result;
+	}
+	return null;
+}
+async function fetchFusionStats(activeUser) {
+	if (!activeUser) return;
+
+	let res = await chain.post('/v1/chain/get_table_rows', {
+		code: CRAFTING_CONTRACT,
+		index_position: 1,
+		json: true,
+		limit: 1,
+		scope: CRAFTING_CONTRACT,
+		table: 'fusionlimits',
+		lower_bound: activeUser,
+		upper_bound: activeUser
+	});
+	if (res?.rows?.length) {
+		return res?.rows[0];
+	}
+	return null;
+}
+async function fetchFusionConfig() {
+	let res = await chain.post('/v1/chain/get_table_rows', {
+		code: CRAFTING_CONTRACT,
+		index_position: 1,
+		json: true,
+		limit: 1,
+		scope: CRAFTING_CONTRACT,
+		table: 'config'
+	});
+	if (res?.rows?.length) {
+		return res?.rows[0];
+	}
+	return null;
+}
+
+async function fetchOutcomes(contract) {
+	if (!contract) return;
+
+	let res = await chain.post('/v1/chain/get_table_rows', {
+		code: contract,
+		index_position: 1,
+		json: true,
+		limit: 100,
+		scope: contract,
+		table: 'outcomes'
+	});
+	return res?.rows;
+}
 async function fetchSales(contract = STORE_CONTRACT, mock = null) {
 	if (!contract) return;
 	if (mock) return mock;
@@ -193,6 +280,30 @@ async function fetchBalance(activeUser) {
 	return balance;
 }
 
+async function fetchWaxBalance(activeUser) {
+	if (!activeUser) return;
+
+	let res = await chain.post('/v1/chain/get_currency_balance', {
+		code: 'eosio.token',
+		account: activeUser.accountName,
+		symbol: 'WAX'
+	});
+
+	let balance = 0.0;
+
+	if (res?.length) {
+		let shell = res.find((acc) => acc.includes('WAX'));
+		if (shell) {
+			balance = (parseInt(shell.split(' ')[0].replace('.', '')) / 100000000).toFixed(4);
+		} else {
+			balance = 0.0;
+		}
+	} else {
+		balance = 0.0;
+	}
+
+	return balance;
+}
 async function fetchPromoBalance(activeUser, collections) {
 	if (!activeUser) return;
 	let balances = [];
@@ -427,11 +538,35 @@ async function fetchAllAssets(activeUser, collections) {
 	collections.forEach((element) => {
 		collectionNameArray.push(element.collection);
 	});
-	let res = await atomicAssetsApi.getAssets(activeUser.accountName, collectionNameArray.join());
-
-	if (res?.success) {
-		return res;
+	let userCollections = await atomicAssetsApi.getAccount(
+		activeUser.accountName,
+		collectionNameArray.join()
+	);
+	const total_asset_count = userCollections.data.assets;
+	let hasMore = true;
+	let page = 1;
+	let result = {};
+	result.data = [];
+	while (hasMore) {
+		let res = await atomicAssetsApi.getAssets(
+			activeUser.accountName,
+			collectionNameArray.join(),
+			null,
+			page
+		);
+		res.data.forEach((element) => {
+			result.data.push(element);
+		});
+		if (result.data.length < total_asset_count) {
+			hasMore = true;
+			page++;
+		} else {
+			hasMore = false;
+		}
+		await resolveAfterMS(100);
 	}
+
+	return result;
 }
 async function fetchAtomicAssets(activeUser, collection) {
 	if (!collection) return;
@@ -504,6 +639,25 @@ async function fetchClaims(id, scope = 'atomicpacksx') {
 	const claims = res?.rows;
 	return claims;
 }
+async function fetchNeftyClaims(id, scope = 'atomicpacksx') {
+	let res = await chain.post('/v1/chain/get_table_rows', {
+		code: scope,
+		index_position: 1,
+		json: true,
+		/* 	key_type: 'name', */
+		limit: 200,
+		lower_bound: id,
+		reverse: false,
+		scope,
+		show_payer: false,
+		table: 'claimassets',
+
+		upper_bound: id
+	});
+
+	const claims = res?.rows;
+	return claims;
+}
 async function fetchNotClaimed(activeUser, scope = 'atomicpoolsx', externalNames = []) {
 	if (!activeUser.accountName) return;
 	let res = await chain.post('/v1/chain/get_table_rows', {
@@ -525,7 +679,7 @@ async function fetchNotClaimed(activeUser, scope = 'atomicpoolsx', externalNames
 
 async function fetchPackConfig(contract = 'atomicpacksx', template_id) {
 	if (!template_id) return;
-	let index_position = 1;
+	let index_position = 2;
 	if (contract === 'atomicpacksx') index_position = 2;
 	let res = await chain.post('/v1/chain/get_table_rows', {
 		code: contract,
@@ -537,7 +691,7 @@ async function fetchPackConfig(contract = 'atomicpacksx', template_id) {
 		lower_bound: template_id,
 		upper_bound: template_id
 	});
-
+	console.log('@config res', res);
 	let config = res?.rows;
 
 	if (config) return config;
@@ -563,7 +717,7 @@ async function queryActiveSales() {
 	try {
 		let res = await chain.post('/v1/chain/get_table_rows', {
 			code: STORE_CONTRACT,
-			index_position: 2,
+			index_position: 3,
 			key_type: 'i128',
 			json: true,
 			limit: 100,
@@ -585,7 +739,7 @@ async function queryInactiveSales() {
 	try {
 		let res = await chain.post('/v1/chain/get_table_rows', {
 			code: STORE_CONTRACT,
-			index_position: 2,
+			index_position: 3,
 			key_type: 'i128',
 			json: true,
 			limit: 100,
@@ -601,7 +755,7 @@ async function queryInactiveSales() {
 		console.log(JSON.stringify(err.response.data, null, 2));
 	}
 }
-async function getStoreItems() {
+/* async function getStoreItems() {
 	let sales = [];
 	const activeItems = await queryActiveSales();
 	for (let item of activeItems.rows) {
@@ -614,7 +768,7 @@ async function getStoreItems() {
 		sales.push(item);
 	}
 	return sales;
-}
+} */
 async function fetchShopData(activeUser, mock = false) {
 	let sales = null;
 	if (mock) sales = mock;
@@ -646,10 +800,55 @@ async function fetchShopData(activeUser, mock = false) {
 	return res;
 }
 
+async function fetchOffers(id, page = 1) {
+	let res = await atomicAssetsApi.getOffers(id, page);
+	if (res?.success) {
+		return res.data;
+	}
+}
+
+async function getStoreItems() {
+	let sales = [];
+	const activeItems = await queryActiveSales();
+
+	for (let item of activeItems.rows) {
+		item.show = true;
+		sales.push(item);
+	}
+	const inactiveItems = await queryInactiveSales();
+
+	for (let item of inactiveItems.rows) {
+		item.show = false;
+		sales.push(item);
+	}
+	sales.sort(dynamicSort('weighting'));
+
+	return sales;
+}
+async function fetchClaimsNefty(id, scope = 'atomicpacksx') {
+	let res = await chain.post('/v1/chain/get_table_rows', {
+		code: scope,
+		index_position: 1,
+		json: true,
+		/* 	key_type: 'name', */
+		limit: 200,
+		lower_bound: id,
+		reverse: false,
+		scope,
+		show_payer: false,
+		table: 'claimassets',
+
+		upper_bound: id
+	});
+
+	const claims = res?.rows;
+	return claims;
+}
 export const greenRabbitApi = {
 	fetchPoolAssets,
 	fetchAccount,
 	fetchBalance,
+	fetchWaxBalance,
 	fetchCollections,
 	fetchDrives,
 	fetchStorage,
@@ -670,5 +869,12 @@ export const greenRabbitApi = {
 	fetchNotClaimed,
 	fetchAllAssets,
 	fetchCraftLog,
-	fetchCraftOutcome
+	fetchCraftOutcome,
+	fetchFusionOutcome,
+	fetchBoostOutcome,
+	fetchFusionStats,
+	fetchOutcomes,
+	fetchOffers,
+	fetchClaimsNefty,
+	fetchFusionConfig
 };

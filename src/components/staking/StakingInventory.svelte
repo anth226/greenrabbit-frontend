@@ -66,7 +66,7 @@
 			}, TRANSACTION_TIMEOUT_MS);
 		} catch (err) {
 			close();
-			window.pushToast(err.message, 'fa fa-exclamation-triangle ', '#e52659');
+			window.pushToast(err.message, 'error', 'Transaction error', 6);
 		}
 	}
 	function resetSelects() {
@@ -215,7 +215,7 @@
 	</div>
 	{#if $assetsStore.filter((asset) => asset.isStaked == null && asset.isStakeable && (asset.data.Rarity == selectedRarity.matcher || selectedRarity.matcher == 'All') && (asset.data.Class == selectedType.matcher || selectedType.matcher == 'All') && ((asset.weight / 10000 >= selectedSph.min && asset.weight / 10000 <= selectedSph.max) || selectedSph.name == 'All')).length}
 		<div class="staking-inventory" class:selectedSection={$inventorySelected === 'staking'}>
-			{#each $assetsStore.filter((asset) => asset.isStaked == null && asset.isStakeable && (asset.data.Rarity == selectedRarity.matcher || selectedRarity.matcher == 'All') && (asset.data.Class == selectedType.matcher || selectedType.matcher == 'All') && ((asset.weight / 10000 >= selectedSph.min && asset.weight / 10000 <= selectedSph.max) || selectedSph.name == 'All')) as nftData}
+			{#each $assetsStore.filter((asset) => asset.isStaked == null && asset.isStakeable && (asset.collection.collection_name == 'greenrabbitx' || asset.collection.collection_name == 'greenrabbit') && (asset.schema.schema_name == 'characters' || asset.schema.schema_name == 'totems') && (asset.data.Rarity == selectedRarity.matcher || selectedRarity.matcher == 'All') && (asset.data.Class == selectedType.matcher || selectedType.matcher == 'All') && ((asset.weight / 10000 >= selectedSph.min && asset.weight / 10000 <= selectedSph.max) || selectedSph.name == 'All')) as nftData}
 				<div
 					on:click={() => {
 						if (isNotOnCooldown(nftData)) {

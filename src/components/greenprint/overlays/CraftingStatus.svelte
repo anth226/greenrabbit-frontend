@@ -1,6 +1,14 @@
 <script>
 	import CtaButton from 'src/components/CTAButton.svelte';
 	import { craftingLog, craftingResult, waitingConfirmationCrafting } from 'src/stores/store';
+	import {
+		AGILITY_MAX,
+		INTELLECT_MAX,
+		LUCK_MAX,
+		RESILIENCE_MAX,
+		SPEED_MAX,
+		STRENGTH_MAX
+	} from 'src/utils/constants';
 	import { getContext, onMount } from 'svelte';
 	const { open, close } = getContext('simple-modal');
 	export let buildFailed = true;
@@ -40,27 +48,27 @@
 	$: {
 		if (!buildFailed) {
 			strengthPercent = (
-				(Number($craftingLog.current_craft.attributes.strength).toFixed(0) / 288) *
+				(Number($craftingLog.current_craft.attributes.strength).toFixed(0) / STRENGTH_MAX) *
 				100
 			).toFixed(0);
 			resiliencePercent = (
-				(Number($craftingLog.current_craft.attributes.resilience).toFixed(0) / 288) *
+				(Number($craftingLog.current_craft.attributes.resilience).toFixed(0) / RESILIENCE_MAX) *
 				100
 			).toFixed(0);
 			agilityPercent = (
-				(Number($craftingLog.current_craft.attributes.agility).toFixed(0) / 240) *
+				(Number($craftingLog.current_craft.attributes.agility).toFixed(0) / AGILITY_MAX) *
 				100
 			).toFixed(0);
 			speedPercent = (
-				(Number($craftingLog.current_craft.attributes.speed).toFixed(0) / 288) *
+				(Number($craftingLog.current_craft.attributes.speed).toFixed(0) / SPEED_MAX) *
 				100
 			).toFixed(0);
 			intellectPercent = (
-				(Number($craftingLog.current_craft.attributes.intellect).toFixed(0) / 120) *
+				(Number($craftingLog.current_craft.attributes.intellect).toFixed(0) / INTELLECT_MAX) *
 				100
 			).toFixed(0);
 			luckPercent = (
-				(Number($craftingLog.current_craft.attributes.luck).toFixed(0) / 22) *
+				(Number($craftingLog.current_craft.attributes.luck).toFixed(0) / LUCK_MAX) *
 				100
 			).toFixed(0);
 		}
@@ -85,7 +93,7 @@
 
 					<p>
 						Base Shellinium cost has been
-						<span class="refunded">refunded</span>
+						<span class="refunded">consumed</span>
 					</p>
 				</div>
 			{/if}
@@ -222,6 +230,7 @@
 					outlined
 					width="280px"
 					margin="0 auto"
+					disabled={$waitingConfirmationCrafting}
 				/>
 			</div>
 		</div>

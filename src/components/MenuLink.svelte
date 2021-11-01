@@ -92,7 +92,7 @@
 
 	@media (min-width: 1450px) {
 		p {
-			font-size: 20px;
+			font-size: 18px;
 			line-height: 1.75rem;
 		}
 		.link {

@@ -5,10 +5,19 @@
 
 	export let type = 'failed';
 	export let view = 'overall';
+	export let masterTab;
 	export let data;
+	export let rarity;
+	export let totem;
+	let rarities = ['Common', 'Uncommon', 'Epic', 'Legendary', 'Mythic'];
+	let fusion_rarities = ['Common', 'Uncommon', 'Epic', 'Legendary'];
+	let fusion_types = ['Greenprint', 'Orb'];
+	export let fusion_type = 'Greenprint';
+	let totems = ['Cat', 'Snake', 'Turtle', 'Rabbit'];
 	let categories = ['4 comp', '3d common', '3d uncommon', '3d epic', '3d legendary', '3d mythic'];
 	export let activeCat = '4 comp';
 	let userPos;
+
 	$: userInTop100 = data.slice(0, 20).filter((e) => e.User == $activeUser.accountName).length > 0;
 	$: {
 		userPos = false;
@@ -60,7 +69,12 @@
 						<span>{user.User} {$activeUser.accountName == user.User ? '(you)' : ''}</span>
 					</div>
 
-					<div class="table-cell"><span>{user.Crafts}</span></div>
+					{#if masterTab == 'crafting'}
+						<div class="table-cell"><span>{user.Crafts}</span></div>
+					{:else if masterTab == 'boost'}
+						<div class="table-cell"><span>{user.Boosts}</span></div>
+					{:else}
+						<div class="table-cell"><span>{user.Fusions}</span></div>{/if}
 				</div>
 			{/each}{#if !userInTop100 && userPos}
 				<div class="table-row else-row self" style="border-top:1px solid white">
@@ -70,8 +84,12 @@
 					<div class="table-cell table-overall">
 						<span>{userPos.User} (you)</span>
 					</div>
-
-					<div class="table-cell"><span>{userPos.Crafts}</span></div>
+					{#if masterTab == 'crafting'}
+						<div class="table-cell"><span>{userPos.Crafts}</span></div>
+					{:else if masterTab == 'boost'}
+						<div class="table-cell"><span>{userPos.Boosts}</span></div>
+					{:else}
+						<div class="table-cell"><span>{userPos.Fusions}</span></div>{/if}
 				</div>
 			{/if}
 		</div>
@@ -79,15 +97,47 @@
 		<h1 in:slide>BY CATEGORY</h1>
 		<div in:slide class="divider-cat" />
 		<div class="category-wrapper">
-			{#each categories as cat}
-				<span
-					class="category"
-					class:active={cat === activeCat}
-					on:click={() => {
-						activeCat = cat;
-					}}>{cat.toUpperCase()}</span
-				>
-			{/each}
+			{#if masterTab == 'crafting'}
+				{#each categories as cat}
+					<span
+						class="category"
+						class:active={cat === activeCat}
+						on:click={() => {
+							activeCat = cat;
+						}}>{cat.toUpperCase()}</span
+					>
+				{/each}
+			{:else if masterTab == 'boost'}
+				{#each rarities as rar}
+					<span
+						class="category"
+						class:active={rar === rarity}
+						on:click={() => {
+							rarity = rar;
+						}}>{rar.toUpperCase()}</span
+					>
+				{/each}
+			{:else if masterTab == 'orbfusion'}
+				{#each fusion_rarities as rar}
+					<span
+						class="category"
+						class:active={rar === rarity}
+						on:click={() => {
+							rarity = rar;
+						}}>{rar.toUpperCase()}</span
+					>
+				{/each}
+			{:else if masterTab == 'gpfusion'}
+				{#each rarities as rar}
+					<span
+						class="category"
+						class:active={rar === rarity}
+						on:click={() => {
+							rarity = rar;
+						}}>{rar.toUpperCase()}</span
+					>
+				{/each}
+			{/if}
 		</div>
 
 		<div class="table-content">
@@ -110,7 +160,12 @@
 							<span>{user.User} {$activeUser.accountName == user.User ? '(you)' : ''}</span>
 						</div>
 
-						<div class="table-cell"><span>{user.Crafts}</span></div>
+						{#if masterTab == 'crafting'}
+							<div class="table-cell"><span>{user.Crafts}</span></div>
+						{:else if masterTab == 'boost'}
+							<div class="table-cell"><span>{user.Boosts}</span></div>
+						{:else}
+							<div class="table-cell"><span>{user.Fusions}</span></div>{/if}
 					</div>
 				{/each}{#if !userInTop100 && userPos}
 					<div class="table-row  else-row self" style="border-top:1px solid white">
@@ -121,7 +176,12 @@
 							<span>{userPos.User} (you)</span>
 						</div>
 
-						<div class="table-cell"><span>{userPos.Crafts}</span></div>
+						{#if masterTab == 'crafting'}
+							<div class="table-cell"><span>{userPos.Crafts}</span></div>
+						{:else if masterTab == 'boost'}
+							<div class="table-cell"><span>{userPos.Boosts}</span></div>
+						{:else}
+							<div class="table-cell"><span>{userPos.Fusions}</span></div>{/if}
 					</div>
 				{/if}
 			{/if}
@@ -259,7 +319,11 @@
 
 		border-radius: 3px;
 
-		background-color: #1c1c1c;
+		box-shadow: 0 3px 6px 0 rgba(0, 0, 0, 0.43);
+
+		border: solid 1px #3c3c3c;
+
+		background-color: #222;
 		margin: 32px auto;
 	}
 	.table-cat {

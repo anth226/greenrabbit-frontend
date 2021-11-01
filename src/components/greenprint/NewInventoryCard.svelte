@@ -40,11 +40,11 @@
 	let source = nftData?.data.img || nftData?.data.video;
 	let src = `GreenRabbit/nfts/${source}.png`;
 
-	let imageSource = `http://res.cloudinary.com/green-rabbit-holdings/image/upload/q_auto/v1/GreenRabbit/nfts/${source}.png`;
+	let imageSource = `http://res.cloudinary.com/green-rabbit-holdings/image/upload/q_auto/GreenRabbit/nfts/${source}.png`;
 	let showImage = true;
 
 	$: source = nftData?.data.img || nftData?.data.video;
-	$: imageSource = `http://res.cloudinary.com/green-rabbit-holdings/image/upload/q_auto/v1/GreenRabbit/nfts/${source}.png`;
+	$: imageSource = `http://res.cloudinary.com/green-rabbit-holdings/image/upload/q_auto/GreenRabbit/nfts/${source}.png`;
 </script>
 
 {#if nftData}
@@ -73,7 +73,7 @@
 			<!-- <img
 				
 				alt="robot"
-				src="https://res.cloudinary.com/green-rabbit-holdings/image/upload/f_auto,q_auto/c_scale/v1/GreenRabbit/nfts/QmdzDJ3eBwARsbK5VhK6fe6osjeYCiXfZCrjZNQ3ApWWue.png"
+				src="https://res.cloudinary.com/green-rabbit-holdings/image/upload/f_auto,q_auto/c_scale/GreenRabbit/nfts/QmdzDJ3eBwARsbK5VhK6fe6osjeYCiXfZCrjZNQ3ApWWue.png"
 			/> -->
 			<div
 				class="rarity"

@@ -34,6 +34,11 @@
 
 		return 'VIEW SALE';
 	}
+	$: currency = nftData.itemcost.split(' ')[1];
+	$: saleImg =
+		nftData.templateData?.template_id == '336783'
+			? 'QmWG5fBb7mLoXUy8mfsK6DXxmEA1YzRdgtR5rnCLuz3432'
+			: nftData.templateData?.immutable_data.img;
 </script>
 
 {#if nftData}
@@ -46,14 +51,14 @@
 			</div>
 			<img
 				class="image"
-				alt="robot"
-				src={'https://ipfs.io/ipfs/' + nftData.templateData?.immutable_data.img}
+				alt={nftData.templateData?.name}
+				src={'https://greenrabbit.mypinata.cloud/ipfs/' + saleImg}
 			/>
 			<!-- <div class="rarity" style="border-color:{rarities[rarityColor]}">common</div> -->
 		</div>
 		<div class="bottom">
 			<p class="pack-name">{nftData.templateData?.name}</p>
-			<span class="shell-cost">{getFormattedCost(nftData, 1)} SHELL</span>
+			<span class="shell-cost">{getFormattedCost(nftData, 1)} {currency}</span>
 
 			<BuyButton
 				isTimer={true}

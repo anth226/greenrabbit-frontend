@@ -56,12 +56,12 @@
 			}, TRANSACTION_TIMEOUT_MS);
 		} catch (err) {
 			close();
-			window.pushToast(err.message, 'fa fa-exclamation-triangle ', '#e52659');
+			window.pushToast(err.message, 'error', 'Transaction error', 6);
 		}
 	}
 </script>
 
-<span class="tooltip">
+<span class="_tooltip">
 	<button
 		on:click={() => {
 			handleStake();
@@ -86,13 +86,13 @@
 </span>
 
 <style>
-	.tooltip {
+	._tooltip {
 		position: relative;
 		display: inline-block;
 		border-bottom: 1px dotted black;
 	}
 
-	.tooltip .tooltiptext {
+	._tooltip .tooltiptext {
 		visibility: hidden;
 		/* height: 55px; */
 		width: 230px;
@@ -110,7 +110,7 @@
 		font-size: 14px;
 	}
 
-	.tooltip .tooltiptext::after {
+	._tooltip .tooltiptext::after {
 		content: '';
 		position: absolute;
 		top: 100%;
@@ -121,7 +121,7 @@
 		border-color: #fff transparent transparent transparent;
 	}
 
-	.tooltip:hover .tooltiptext {
+	._tooltip:hover .tooltiptext {
 		visibility: visible;
 		opacity: 1;
 	}

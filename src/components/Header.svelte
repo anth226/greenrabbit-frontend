@@ -3,7 +3,7 @@
 	import CTAButton from './CTAButton.svelte';
 	import { fly, fade, slide } from 'svelte/transition';
 	import MenuLink from './MenuLink.svelte';
-	import { activeUser, userBalance } from '../stores/store.js';
+	import { activeUser, userBalance, waxBalance } from '../stores/store.js';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	let dropdownMenu;
@@ -78,8 +78,12 @@
 			</div>{:else}
 			<div class="left">
 				<img
+					on:click={() => {
+						goto('https://www.greenrabbitgame.io');
+					}}
 					in:fade={{ delay: 200 }}
 					out:fade
+					style="cursor:pointer"
 					class="logo"
 					alt="Green Rabbit Logo"
 					src="https://res.cloudinary.com/green-rabbit-holdings/image/upload/f_auto,q_auto/v1626106905/GreenRabbit/gr_logo_g6i04r_qv8acp.png"
@@ -88,7 +92,7 @@
 				<nav class="menu">
 					{#if $activeUser.accountName}
 						<MenuLink first route="/hub" text="Staking" />
-						<MenuLink route="/greenprints" text="Crafting" />
+						<MenuLink route="/crafting" text="Crafting" />
 						<div class="divider" />
 					{/if}
 					<MenuLink first={!$activeUser.accountName} route="/store" text="Shop" />
@@ -107,15 +111,24 @@
 		{/if}
 		<div class="right">
 			{#if $activeUser.accountName}
-				<div class="shell">
-					<img
-						width="32"
-						height="45"
-						alt="Shellinium icon"
-						src="https://res.cloudinary.com/green-rabbit-holdings/image/upload/f_auto,q_auto/v1629214217/GreenRabbit/shell-icon.png"
-					/>
-					<p class="amount">{toFixedCurrency($userBalance, 2)}</p>
+				<div class="balances">
+					<div class="shell">
+						<img
+							width="22"
+							height="35"
+							alt="Shellinium icon"
+							src="https://res.cloudinary.com/green-rabbit-holdings/image/upload/f_auto,q_auto/v1629214217/GreenRabbit/shell-icon.png"
+						/>
+						<p class="amount">{toFixedCurrency($userBalance, 2)}</p>
+					</div>
+					<div class="wax">
+						<img src="/icons/wax.png" width="22" height="35" alt="Wax icon" />
+						<p class="amount">
+							{#if $waxBalance}{toFixedCurrency($waxBalance, 2)}{:else}0.00{/if}
+						</p>
+					</div>
 				</div>
+
 				<div class="user" bind:this={dropdownMenu} on:click={toggleOpenMenu}>
 					<p>{$activeUser.accountName.toUpperCase()}</p>
 
@@ -143,10 +156,21 @@
 								<p>Inventory</p>
 							</div>
 							<div
-								transition:fade={{ duration: 50 }}
-								on:click={logout}
+								transition:fade={{ duration: 70 }}
+								on:click={() => {
+									goto('/explorer');
+								}}
 								class="desktop-user-menu"
 								style="--open:{open ? 'flex' : 'none'};margin-top:40px;"
+							>
+								<p>GR Asset Lookup</p>
+							</div>
+
+							<div
+								transition:fade={{ duration: 90 }}
+								on:click={logout}
+								class="desktop-user-menu"
+								style="--open:{open ? 'flex' : 'none'};margin-top:80px;"
 							>
 								<p>Logout</p>
 							</div>
@@ -173,15 +197,24 @@
 				/>{/if}
 		</div>
 		{#if !openMobile}
-			<div class="shell-mobile" class:hide={openMobile}>
-				<img
-					width="32"
-					height="45"
-					alt="Shellinium icon"
-					src="https://res.cloudinary.com/green-rabbit-holdings/image/upload/f_auto,q_auto/v1629214217/GreenRabbit/shell-icon.png"
-				/>
-				<p class="amount">{toFixedCurrency($userBalance, 2)}</p>
-			</div>{/if}
+			<div class="mobile-balance-wrap">
+				<div class="shell-mobile" class:hide={openMobile}>
+					<img
+						width="32"
+						height="45"
+						alt="Shellinium icon"
+						src="https://res.cloudinary.com/green-rabbit-holdings/image/upload/f_auto,q_auto/v1629214217/GreenRabbit/shell-icon.png"
+					/>
+					<p class="amount">{toFixedCurrency($userBalance, 2)}</p>
+				</div>
+				<div class="wax-mobile" class:hide={openMobile}>
+					<img src="/icons/wax.png" width="22" height="35" alt="Wax icon" />
+					<p class="amount">
+						{#if $waxBalance}{toFixedCurrency($waxBalance, 2)}{:else}0.00{/if}
+					</p>
+				</div>
+			</div>
+		{/if}
 
 		<div class="mobile">
 			<button
@@ -199,7 +232,7 @@
 			<div class="mobile-menu" in:slide={{ duration: 200 }} out:slide={{ duration: 200 }}>
 				<div class="mobile-menu-item" on:click={() => navigate('/inventory')}>Inventory</div>
 				<div class="mobile-menu-item" on:click={() => navigate('/hub')}>Staking</div>
-				<div class="mobile-menu-item" on:click={() => navigate('/greenprints')}>Crafting</div>
+				<div class="mobile-menu-item" on:click={() => navigate('/crafting')}>Crafting</div>
 				<div class="mobile-menu-item" on:click={() => navigate('/leaderboard')}>Leaderboard</div>
 				<div class="mobile-menu-item" on:click={() => navigate('/store')}>Store</div>
 				<!-- <div class="mobile-menu-item" on:click={() => navigate('/redeem')}>Redeem Chests</div> -->
@@ -229,6 +262,20 @@
 <svelte:window bind:innerHeight bind:innerWidth />
 
 <style>
+	.mobile-balance-wrap {
+		position: absolute;
+		display: flex;
+		flex-direction: column;
+
+		height: 58px;
+
+		font-size: 22px;
+		margin-left: calc(100vw - 250px);
+	}
+	.balances {
+		display: flex;
+		flex-direction: column;
+	}
 	.hodler {
 		margin-top: -32px !important;
 	}
@@ -474,25 +521,51 @@
 	.shell {
 		align-items: center;
 		display: flex;
-		font-size: 22px;
+		font-size: 18px;
+		margin-bottom: 4px;
 	}
 
 	.shell .amount {
 		margin-left: 12px;
 	}
+	.wax {
+		align-items: center;
+		display: flex;
+		font-size: 18px;
+		margin-top: 4px;
+	}
+
+	.wax .amount {
+		margin-left: 12px;
+	}
 	.shell-mobile {
-		position: absolute;
 		height: 58px;
 		align-items: center;
 		display: none;
 		font-size: 22px;
-		margin-left: calc(100vw - 200px);
 	}
 	.shell-mobile img {
 		object-fit: scale-down;
 		width: 20px;
 	}
 	.shell-mobile .amount {
+		margin-left: 7px;
+		font-size: 14px;
+
+		font-weight: bold;
+	}
+
+	.wax-mobile {
+		height: 58px;
+		align-items: center;
+		display: none;
+		font-size: 22px;
+	}
+	.wax-mobile img {
+		object-fit: scale-down;
+		width: 20px;
+	}
+	.wax-mobile .amount {
 		margin-left: 7px;
 		font-size: 14px;
 
@@ -539,6 +612,9 @@
 			display: flex;
 		}
 		.shell-mobile {
+			display: flex;
+		}
+		.wax-mobile {
 			display: flex;
 		}
 		.header {

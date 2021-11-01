@@ -1,11 +1,12 @@
 <script>
-	import { image, initialize } from 'svelte-cloudinary';
-	import { browser } from '$app/env';
 	import NfTcooldown from './overlays/NFTcooldown.svelte';
 	import { convertHexToRGBA, getCooldownData } from 'src/utils/helpers';
 	import NftStaked from './overlays/NFTStaked.svelte';
 	import { now } from 'src/stores/store';
+	import GPCardTooltip from './overlays/GPCardTooptip.svelte';
+	import { Popover } from 'sveltestrap';
 
+	export let disabled = false;
 	const rarities = {
 		common: '#878787',
 		uncommon: '#F2B47D',
@@ -22,9 +23,13 @@
 		legendary: '72px',
 		mythic: '57px'
 	};
+
 	export let nftData;
+	export let selectedType;
+
 	let nftIsStaked = nftData.isStaked;
 	let cooldownEnds;
+	let bonusStat = nftData?.bonusStats?.total || 0;
 	let end =
 		Number(nftData.mutable_data['Last Used']) +
 		3600 * (12 * Number(nftData.mutable_data['Status Type']));
@@ -41,58 +46,111 @@
 		}
 	}
 
-	initialize({ cloud_name: 'green-rabbit-holdings' });
-
 	let source = nftData?.data.img || nftData?.data.video;
+
 	let src = `GreenRabbit/nfts/${source}.png`;
-
-	let imageSource = `http://res.cloudinary.com/green-rabbit-holdings/image/upload/q_auto/v1/GreenRabbit/nfts/${source}.png`;
+	let imageSource;
+	export let boosting = false;
+	if (boosting) {
+		imageSource = `./assets/${source}`;
+	} else {
+		imageSource = `http://res.cloudinary.com/green-rabbit-holdings/image/upload/q_auto/v1/GreenRabbit/nfts/${source}.png`;
+	}
 	let showImage = true;
-
 	$: source = nftData?.data.img || nftData?.data.video;
-	$: imageSource = `http://res.cloudinary.com/green-rabbit-holdings/image/upload/q_auto/v1/GreenRabbit/nfts/${source}.png`;
-
-	// $: {
-	// 	if (nftData) {
-	// 		showImage = false;
-	// 		source = nftData?.data.img || nftData?.data.video;
-	// 		src = `GreenRabbit/nfts/${source}.png`;
-	// 		setTimeout(() => {
-	// 			showImage = true;
-	// 		}, 100);
-	// 	}
-	// }
+	$: imageSource = `http://res.cloudinary.com/green-rabbit-holdings/image/upload/q_auto/GreenRabbit/nfts/${source}.png`;
 </script>
 
 {#if nftData}
 	{#if nftData.data.Rarity}
 		<div
 			class="wrapper"
+			class:disabled
+			id={`gp-${nftData.asset_id}`}
 			class:selected={nftData.isSelected}
 			style="--rarity-color: {rarities[nftData.data.Rarity.toLowerCase()]};"
 		>
-			<div class="top">
+			<div class="top" class:selectedBg={nftData.isSelected}>
 				{#if nftIsStaked}
 					<NftStaked {nftData} />
 				{/if}
 				{#if nftOnCooldown}
 					<NfTcooldown {nftData} {cooldownEnds} />
 				{/if}
-
+				<GPCardTooltip {nftData} />
 				<div class="mint">#{nftData.template_mint}</div>
 				{#if showImage}
-					<img
-						class:staked={nftIsStaked || nftOnCooldown}
-						alt={nftData.data.name}
-						src={imageSource}
-						class="image"
-					/>
+					<div class="imgShow">
+						<img
+							class:staked={nftIsStaked || nftOnCooldown}
+							alt={nftData.data.name}
+							src={imageSource}
+							class="image"
+						/>
+
+						{#if selectedType && selectedType.name == 'orbs'}
+							<div class="messagePopUp">
+								Rarities of the Greenprint and the Ascendant Orb need to be the same
+							</div>
+						{/if}
+					</div>
 				{/if}
-				<!-- <img
-				
-				alt="robot"
-				src="https://res.cloudinary.com/green-rabbit-holdings/image/upload/f_auto,q_auto/c_scale/v1/GreenRabbit/nfts/QmdzDJ3eBwARsbK5VhK6fe6osjeYCiXfZCrjZNQ3ApWWue.png"
-			/> -->
+
+				{#if nftData.bonus || nftData.data['Boost Count']}
+					<div class="bosted_bonus">
+						{#if nftData.bonus}
+							<div class="bonusWrapper">
+								<div class="bonus">
+									<img src="/assets/bonus.svg" alt="bonus" />
+									{nftData.bonus}%
+								</div>
+								<div class="messagePopUp">
+									Bonus stats : {nftData.bonus}%
+								</div>
+							</div>
+						{/if}
+						{#if nftData.data['Boost Count']}
+							<div class="boostWrapper">
+								<div class="bonus">
+									<img src="/assets/boosted.svg" alt="bonus" />
+									{nftData.data['Boost Count']}/10
+								</div>
+							</div>
+						{/if}
+					</div>
+				{/if}
+				{#if bonusStat > 0}
+					<div class="bosted_bonus">
+						<div class="bonusWrapper">
+							<div class="bonus">
+								<img src="/assets/bonus.svg" alt="bonus" />
+								{bonusStat.toFixed(2)}%
+							</div>
+						</div>
+						<!-- <div class="boostedWrapper">
+						<div class="boosted">
+							<img src="/assets/boosted.svg" alt="boosted" />
+							1
+						</div>
+					</div> -->
+					</div>
+				{/if}
+				{#if bonusStat > 0}
+					<div class="bosted_bonus">
+						<div class="bonusWrapper">
+							<div class="bonus">
+								<img src="/assets/bonus.svg" alt="bonus" />
+								{bonusStat.toFixed(2)}%
+							</div>
+						</div>
+						<!-- <div class="boostedWrapper">
+						<div class="boosted">
+							<img src="/assets/boosted.svg" alt="boosted" />
+							1
+						</div>
+					</div> -->
+					</div>
+				{/if}
 				<div
 					class="rarity"
 					style="border-color:{nftIsStaked || nftOnCooldown
@@ -102,30 +160,84 @@
 				>
 					{nftData.data.Rarity.toLowerCase()}
 				</div>
-				<div
-					style="--border-color:{nftIsStaked || nftOnCooldown
-						? convertHexToRGBA('#a3a3a3', 30)
-						: '#a3a3a3'};"
-					class="token"
-				>
-					{nftData.totem ? nftData.totem : ''}
-				</div>
+				{#if nftData.totem}
+					<div
+						style="--border-color:{nftIsStaked || nftOnCooldown
+							? convertHexToRGBA('#a3a3a3', 30)
+							: '#a3a3a3'};"
+						class="token"
+					>
+						{nftData.totem ? nftData.totem : ''}
+					</div>
+				{/if}
 			</div>
 
 			<div class="bottom">
 				<span class="nft-name">{nftData.name}</span>
-				{#if nftData.weight && nftData.weight > 0}
-					<span class="shell-hr">{nftData.weight / 10000} SHELL/hr</span>
-				{/if}
+
 				<span class="type">{nftData.totem ? nftData.totem : ''}</span>
 			</div>
 		</div>
+		{#if disabled}
+			<Popover
+				trigger="hover"
+				placement="top"
+				target={`gp-${nftData.asset_id}`}
+				class="center-tooltip"
+			>
+				<p>All selected assets must be of the same rarity</p>
+			</Popover>
+		{/if}
 	{/if}
 {/if}
 
 <style>
+	.bosted_bonus .bonusWrapper {
+		margin: 0 7px;
+		color: rgb(255, 255, 255);
+		position: absolute;
+		top: 52%;
+		left: 44%;
+		cursor: default;
+	}
+	.bosted_bonus .boostWrapper {
+		margin: 0 7px;
+		color: rgb(255, 255, 255);
+		position: absolute;
+		top: 52%;
+		left: 0%;
+		cursor: default;
+	}
+	.bonus {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+		font-size: 12px;
+		background: black;
+		padding: 5px;
+	}
+	.boostedWrapper .boosted {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+		font-size: 12px;
+		background: black;
+		padding: 5px;
+	}
+	.bonus img,
+	.boosted img {
+		margin-right: 5px;
+	}
 	.staked {
 		opacity: 0.2;
+	}
+	.disabled {
+		opacity: 0.5;
+	}
+	.selectedBg {
+		background-image: linear-gradient(to bottom, #484848, #343434) !important;
 	}
 	.wrapper {
 		border: 2px solid rgba(255, 255, 255, 0.3);
@@ -145,28 +257,16 @@
 	.selected {
 		box-shadow: 0 0 0 3px var(--primary-teal) !important;
 	}
-	/* .wrapper:before {
-		content: '';
-		position: absolute;
-		margin: -25px;
-		width: 50px;
-		height: 50px;
-		transform: rotate(45deg);
-		background-color: var(--rarity-color);
-		z-index: 3;
-	} */
-
 	.top {
 		height: 215px;
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		background-color: var(--dark-grey);
+		background-image: linear-gradient(to bottom, #151515, #343434);
 		position: relative;
 		display: flex;
 		flex-direction: column;
 	}
-
 	.bottom {
 		display: flex;
 		flex-direction: column;
@@ -177,7 +277,6 @@
 		bottom: 0;
 		padding: 0 8px 0;
 	}
-
 	.bottom span {
 		width: 100%;
 		text-align: center;
@@ -197,7 +296,6 @@
 	.bottom span:last-of-type {
 		font-weight: 600;
 	}
-
 	.mint {
 		position: absolute;
 		top: 6px;
@@ -212,7 +310,6 @@
 		justify-content: center;
 		align-items: center;
 	}
-
 	.rarity {
 		/* position: absolute; */
 		bottom: -15px;
@@ -221,7 +318,6 @@
 		margin: 0 auto;
 		width: 140px;
 		height: 25px;
-
 		border: 2px solid red;
 		border-radius: 25px;
 		z-index: 2;
@@ -246,46 +342,36 @@
 		font-weight: 600;
 		text-align: center;
 	}
-
 	.image {
 		object-fit: scale-down;
 		width: 95px;
 		height: 135px;
 	}
-
-	/* @media (min-width: 481px) {
-		.wrapper {
-			height: 275px;
-		}
-
-		.top {
-			height: calc(275px - 95px);
-		}
-
-		.bottom {
-			height: 95px;
-			font-size: 14px;
-		}
-
-		.image {
-			width: 100px;
-			height: 130px;
-		}
-
-		.wrapper:before {
-			margin: -30px;
-			width: 60px;
-			height: 60px;
-		}
-	} */
-
 	@media (min-width: 1024px) {
 		.wrapper {
 			height: 330px;
 			width: 195px;
-
 			max-height: 330px;
 			max-width: 195px;
+		}
+
+		.bosted_bonus .boostWrapper {
+			margin: 0 7px;
+			color: rgb(255, 255, 255);
+			position: absolute;
+			top: 68%;
+			left: 7%;
+			cursor: default;
+		}
+		.bosted_bonus .bonusWrapper,
+		.bosted_bonus .boostedWrapper {
+			margin: 0 7px;
+			color: rgb(255, 255, 255);
+			padding: 5px;
+			cursor: default;
+			position: absolute;
+			top: 66%;
+			left: 47%;
 		}
 		.bottom {
 			height: 110px;
@@ -298,7 +384,6 @@
 			width: 140px;
 			height: 170px;
 		}
-
 		.rarity {
 			left: 10px;
 			margin: 0;
@@ -312,7 +397,6 @@
 			align-items: center;
 			justify-content: center;
 		}
-
 		.token {
 			position: absolute;
 			width: 140px;
@@ -328,7 +412,6 @@
 			font-size: 9px;
 			font-weight: bold;
 		}
-
 		.shell-hr {
 			margin-top: 10px;
 			font-size: 15px;
@@ -338,7 +421,6 @@
 			margin-bottom: 16px;
 			font-size: 15px;
 		}
-
 		span.nft-name {
 			margin-top: 26px;
 			font-size: 16px;
@@ -347,7 +429,6 @@
 			top: 12px;
 			right: 12px;
 		}
-
 		.bottom span {
 			line-height: 15px;
 		}

@@ -6,10 +6,10 @@ const THIRTY_SECONDS = 30 * 1000;
 const UNHEALTHY_CODES = [403, 502, 503, 504];
 
 class NodeManager {
-	#nodes = [];
+	nodes = [];
 
 	constructor(nodes = []) {
-		this.#nodes = nodes.map((node) => {
+		this.nodes = nodes.map((node) => {
 			return {
 				lastUsed: Date.now(),
 				url: node,
@@ -18,12 +18,12 @@ class NodeManager {
 		});
 	}
 
-	async #makeCall(url, options) {
+	async makeCall(url, options) {
 		// Handle request timeout
 		const controller = new AbortController();
 		const timeoutId = setTimeout(() => controller.abort(), HTTP_REQUEST_TIMEOUT);
 
-		const nodeUrl = this.#getNodeUrl();
+		const nodeUrl = this.getNodeUrl();
 		const endpoint = `${nodeUrl}${url}`;
 		let response;
 		let error;
@@ -44,11 +44,14 @@ class NodeManager {
 		// Handle Response Errors
 		if ((response && !response.ok) || error) {
 			if (response && !response.ok) {
-				this.#handleResponseError(response, nodeUrl);
+				this.handleResponseError(response, nodeUrl);
 				throw new Error(response.statusText);
 			}
 			if (error) {
-				throw error;
+				this.handleError(error, nodeUrl);
+				// avoid bubbling up TypeError as they don't get retried
+				// https://github.com/sindresorhus/p-retry#pretryinput-options
+				throw new Error(error.message);
 			}
 			throw new Error('Unhandled error');
 		}
@@ -57,29 +60,28 @@ class NodeManager {
 	}
 
 	async fetch(url, options = {}) {
-		const response = await pRetry(() => this.#makeCall(url, options), {
+		const response = await pRetry(() => this.makeCall(url, options), {
 			onFailedAttempt: (error) => {},
-			retries: this.#nodes.length,
+			retries: this.nodes.length,
 			// we don't really want exponential backoff
 			// as they are seperate nodes, so factor of 1
 			factor: 1,
 			minTimeout: 100,
 			maxTimeout: 500
 		});
-
 		return response;
 	}
 
-	#getNodeUrl() {
-		this.#sortNodes();
+	getNodeUrl() {
+		this.sortNodes();
 		// first nodes should be the last used nodes
-		const node = this.#nodes.find((n) => n.healthy);
-		this.#tagNodeUsed(node);
+		const node = this.nodes.find((n) => n.healthy);
+		this.tagNodeUsed(node);
 		return node.url;
 	}
 
-	#tagNodeUsed(node) {
-		this.#nodes = this.#nodes.map((n) => {
+	tagNodeUsed(node) {
+		this.nodes = this.nodes.map((n) => {
 			if (n.url === node.url) {
 				return {
 					...n,
@@ -90,14 +92,14 @@ class NodeManager {
 		});
 	}
 
-	#handleResponseError(response, nodeUrl) {
+	handleResponseError(response, nodeUrl) {
 		if (response.status === 429) {
-			this.#markRateLimited(nodeUrl);
+			this.markRateLimited(nodeUrl);
 			return;
 		}
 
 		if (UNHEALTHY_CODES.includes(response.status)) {
-			this.#markUnhealthy(nodeUrl);
+			this.markUnhealthy(nodeUrl);
 			return;
 		}
 
@@ -106,8 +108,17 @@ class NodeManager {
 		return;
 	}
 
-	#markUnhealthy(url) {
-		this.#nodes = this.#nodes.map((node) => {
+	handleError(error, nodeUrl) {
+		if (error instanceof TypeError && isCorsError(error.message)) {
+			this.markUnhealthy(nodeUrl);
+			return;
+		}
+
+		// Handle other cases here
+	}
+
+	markUnhealthy(url) {
+		this.nodes = this.nodes.map((node) => {
 			if (node.url === url) {
 				return {
 					...node,
@@ -118,8 +129,8 @@ class NodeManager {
 		});
 	}
 
-	#markRateLimited(url) {
-		this.#nodes = this.#nodes.map((node) => {
+	markRateLimited(url) {
+		this.nodes = this.nodes.map((node) => {
 			if (node.url === url) {
 				return {
 					...node,
@@ -130,11 +141,16 @@ class NodeManager {
 		});
 	}
 
-	#sortNodes() {
-		this.#nodes = this.#nodes.sort((a, b) => {
+	sortNodes() {
+		this.nodes = this.nodes.sort((a, b) => {
 			return a.lastUsed - b.lastUsed;
 		});
 	}
+}
+
+function isCorsError(errorMessage) {
+	const corsErrors = ['Preflight response is not successful'];
+	return corsErrors.includes(errorMessage);
 }
 
 export default NodeManager;

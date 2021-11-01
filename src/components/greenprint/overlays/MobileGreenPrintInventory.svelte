@@ -7,6 +7,7 @@
 	import { quintInOut } from 'svelte/easing';
 	import { allAssetsStore, now } from 'src/stores/store';
 	export let isCrafting = false;
+	export let cardType;
 	const { openInventory, closeInventory } = getContext('notsimple-modal');
 
 	let selectedSph, selectedStatus;
@@ -60,12 +61,253 @@
 
 		window.refreshAssets(false, 1);
 	});
-	function clearSelects() {
-		$allAssetsStore.forEach((e) => {
-			e.isSelected = false;
-		});
+
+	export let boosting = false;
+	function clearSelects(boosting) {
+		if (boosting) {
+			testAssets.forEach((e) => {
+				e.isSelected = false;
+			});
+		}
+
+		if (!boosting) {
+			$allAssetsStore.forEach((e) => {
+				e.isSelected = false;
+			});
+		}
 	}
 	let isSelected = false;
+
+	let testAssets = [
+		{
+			weight: 741100,
+			name: 'Cat Greenprint',
+			totem: 'Cat',
+			data: {
+				img: 'catGreenprint.png',
+				name: 'Cat Greenprint',
+				Class: 'Greenprint',
+				Rarity: 'Uncommon',
+				Series: '1',
+				backimg: 'catGreenprint',
+				Description:
+					'The Turtle Totem has an interesting history on Nanotopia. Having been held in low esteem for its lack of physical prowess, it has transcended to become synonymous with wisdom, strategy, and ingenuity. Once considered unlucky to be chosen by this Totem, over time the Turtle has proven itself formidable in many ways.'
+			},
+			isStaked: null,
+			mutable_data: {},
+			template_mint: 888,
+			isSelected: false
+		},
+		{
+			weight: 741100,
+			name: 'Cat Greenprint',
+			totem: 'Cat',
+			data: {
+				img: 'catGreenprint.png',
+				name: 'Cat Greenprint',
+				Class: 'Greenprint',
+				Rarity: 'Common',
+				Series: '1',
+				backimg: 'catGreenprint',
+				Description:
+					'The Turtle Totem has an interesting history on Nanotopia. Having been held in low esteem for its lack of physical prowess, it has transcended to become synonymous with wisdom, strategy, and ingenuity. Once considered unlucky to be chosen by this Totem, over time the Turtle has proven itself formidable in many ways.'
+			},
+			isStaked: null,
+			mutable_data: {},
+			template_mint: 888,
+			isSelected: false
+		},
+		{
+			weight: 741100,
+			name: 'Cat Greenprint',
+			totem: 'Cat',
+			data: {
+				img: 'catGreenprint.png',
+				name: 'Cat Greenprint',
+				Class: 'Greenprint',
+				Rarity: 'Uncommon',
+				Series: '1',
+				backimg: 'catGreenprint',
+				Description:
+					'The Turtle Totem has an interesting history on Nanotopia. Having been held in low esteem for its lack of physical prowess, it has transcended to become synonymous with wisdom, strategy, and ingenuity. Once considered unlucky to be chosen by this Totem, over time the Turtle has proven itself formidable in many ways.'
+			},
+			isStaked: null,
+			mutable_data: {},
+			template_mint: 888,
+			isSelected: false,
+			bonus: 15.4,
+			boosted: 2
+		},
+		{
+			weight: 741100,
+			name: 'Cat Greenprint',
+			totem: 'Cat',
+			data: {
+				img: 'catGreenprint.png',
+				name: 'Cat Greenprint',
+				Class: 'Greenprint',
+				Rarity: 'Uncommon',
+				Series: '1',
+				backimg: 'catGreenprint',
+				Description:
+					'The Turtle Totem has an interesting history on Nanotopia. Having been held in low esteem for its lack of physical prowess, it has transcended to become synonymous with wisdom, strategy, and ingenuity. Once considered unlucky to be chosen by this Totem, over time the Turtle has proven itself formidable in many ways.'
+			},
+			isStaked: null,
+			mutable_data: {},
+			template_mint: 888,
+			isSelected: false
+		},
+		{
+			weight: 741100,
+			name: 'Cat Greenprint',
+			totem: 'Cat',
+			data: {
+				img: 'catGreenprint.png',
+				name: 'Cat Greenprint',
+				Class: 'Greenprint',
+				Rarity: 'Epic',
+				Series: '1',
+				backimg: 'catGreenprint',
+				Description:
+					'The Turtle Totem has an interesting history on Nanotopia. Having been held in low esteem for its lack of physical prowess, it has transcended to become synonymous with wisdom, strategy, and ingenuity. Once considered unlucky to be chosen by this Totem, over time the Turtle has proven itself formidable in many ways.'
+			},
+			isStaked: null,
+			mutable_data: {},
+			template_mint: 888,
+			isSelected: false
+		},
+		{
+			weight: 741100,
+			name: 'Cat Greenprint',
+			totem: 'Cat',
+			data: {
+				img: 'catGreenprint.png',
+				name: 'Cat Greenprint',
+				Class: 'Greenprint',
+				Rarity: 'Uncommon',
+				Series: '1',
+				backimg: 'catGreenprint',
+				Description:
+					'The Turtle Totem has an interesting history on Nanotopia. Having been held in low esteem for its lack of physical prowess, it has transcended to become synonymous with wisdom, strategy, and ingenuity. Once considered unlucky to be chosen by this Totem, over time the Turtle has proven itself formidable in many ways.'
+			},
+			isStaked: null,
+			mutable_data: {},
+			template_mint: 888,
+			isSelected: false,
+			boosted: 1
+		},
+		{
+			weight: 741100,
+			name: 'Cat Greenprint',
+			totem: 'Cat',
+			data: {
+				img: 'catGreenprint.png',
+				name: 'Cat Greenprint',
+				Class: 'Greenprint',
+				Rarity: 'Uncommon',
+				Series: '1',
+				backimg: 'catGreenprint',
+				Description:
+					'The Turtle Totem has an interesting history on Nanotopia. Having been held in low esteem for its lack of physical prowess, it has transcended to become synonymous with wisdom, strategy, and ingenuity. Once considered unlucky to be chosen by this Totem, over time the Turtle has proven itself formidable in many ways.'
+			},
+			isStaked: null,
+			mutable_data: {},
+			template_mint: 888,
+			isSelected: false
+		},
+		{
+			weight: 741100,
+			name: 'Cat Greenprint',
+			totem: 'Cat',
+			data: {
+				img: 'catGreenprint.png',
+				name: 'Cat Greenprint',
+				Class: 'Greenprint',
+				Rarity: 'Mythic',
+				Series: '1',
+				backimg: 'catGreenprint',
+				Description:
+					'The Turtle Totem has an interesting history on Nanotopia. Having been held in low esteem for its lack of physical prowess, it has transcended to become synonymous with wisdom, strategy, and ingenuity. Once considered unlucky to be chosen by this Totem, over time the Turtle has proven itself formidable in many ways.'
+			},
+			isStaked: null,
+			mutable_data: {},
+			template_mint: 888,
+			isSelected: false,
+			bonus: 10.2
+		},
+		{
+			weight: 741100,
+			name: 'Ascendant Orb',
+			data: {
+				img: 'orb.svg',
+				name: 'Ascendant Orb',
+				Class: 'Orbs',
+				Rarity: 'Uncommon',
+				Series: '1',
+				backimg: 'orb',
+				Description:
+					'The Turtle Totem has an interesting history on Nanotopia. Having been held in low esteem for its lack of physical prowess, it has transcended to become synonymous with wisdom, strategy, and ingenuity. Once considered unlucky to be chosen by this Totem, over time the Turtle has proven itself formidable in many ways.'
+			},
+			isStaked: null,
+			mutable_data: {},
+			template_mint: 888,
+			isSelected: false
+		},
+		{
+			weight: 741100,
+			name: 'Ascendant Orb',
+			data: {
+				img: 'orb.svg',
+				name: 'Ascendant Orb',
+				Class: 'Orbs',
+				Rarity: 'Uncommon',
+				Series: '1',
+				backimg: 'orb',
+				Description:
+					'The Turtle Totem has an interesting history on Nanotopia. Having been held in low esteem for its lack of physical prowess, it has transcended to become synonymous with wisdom, strategy, and ingenuity. Once considered unlucky to be chosen by this Totem, over time the Turtle has proven itself formidable in many ways.'
+			},
+			isStaked: null,
+			mutable_data: {},
+			template_mint: 888,
+			isSelected: false
+		},
+		{
+			weight: 741100,
+			name: 'Ascendant Orb',
+			data: {
+				img: 'orb.svg',
+				name: 'Ascendant Orb',
+				Class: 'Orbs',
+				Rarity: 'Uncommon',
+				Series: '1',
+				backimg: 'orb',
+				Description:
+					'The Turtle Totem has an interesting history on Nanotopia. Having been held in low esteem for its lack of physical prowess, it has transcended to become synonymous with wisdom, strategy, and ingenuity. Once considered unlucky to be chosen by this Totem, over time the Turtle has proven itself formidable in many ways.'
+			},
+			isStaked: null,
+			mutable_data: {},
+			template_mint: 888,
+			isSelected: false
+		},
+		{
+			weight: 741100,
+			name: 'Ascendant Orb',
+			data: {
+				img: 'orb.svg',
+				name: 'Ascendant Orb',
+				Class: 'Orbs',
+				Rarity: 'Uncommon',
+				Series: '1',
+				backimg: 'orb',
+				Description:
+					'The Turtle Totem has an interesting history on Nanotopia. Having been held in low esteem for its lack of physical prowess, it has transcended to become synonymous with wisdom, strategy, and ingenuity. Once considered unlucky to be chosen by this Totem, over time the Turtle has proven itself formidable in many ways.'
+			},
+			isStaked: null,
+			mutable_data: {},
+			template_mint: 888,
+			isSelected: false
+		}
+	];
 </script>
 
 <div
@@ -114,7 +356,52 @@
 		</div>
 		<div class="cards">
 			<div class="grid">
-				{#if selectedRarity && selectedSph && selectedType}
+				{#if boosting}
+					{#if selectedRarity && selectedSph && selectedType}
+						{#if testAssets.filter((asset) => (asset.data.Rarity == selectedRarity.matcher || selectedRarity.matcher == 'All') && (asset.data.Class == selectedType.matcher || selectedType.matcher == 'All') && ((asset.weight / 10000 >= selectedSph.min && asset.weight / 10000 <= selectedSph.max) || selectedSph.name == 'All')).length == 0}
+							{#if selectedRarity.name == 'All'}
+								<div class="emptyInv">
+									<div class="title">Your Inventory is empty</div>
+								</div>
+							{:else}
+								<div class="emptyInv">
+									<div class="title">
+										Your don’t have any {selectedRarity.matcher.toLowerCase()}
+										{cardType.toLowerCase()}
+									</div>
+									<div class="subTitle">
+										Rarities of the Greenprint and the {cardType.toLowerCase()} need to be the same
+									</div>
+								</div>
+							{/if}
+						{:else}
+							{#each testAssets.filter((asset) => (asset.data.Rarity == selectedRarity.matcher || selectedRarity.matcher == 'All') && (asset.data.Class == selectedType.matcher || selectedType.matcher == 'All') && ((asset.weight / 10000 >= selectedSph.min && asset.weight / 10000 <= selectedSph.max) || selectedSph.name == 'All')) as nftData}
+								<div
+									style="height: 330px;"
+									on:click={() => {
+										//isSelected = false;
+										clearSelects(boosting);
+										nftData.isSelected = true;
+
+										if (!nftData.isStaked) {
+											if (
+												!nftData.mutable_data['Last Used'] ||
+												Number(nftData.mutable_data['Last Used']) +
+													3600 * (12 * Number(nftData.mutable_data['Status Type'])) -
+													$now <
+													0
+											) {
+												isSelected = nftData;
+											}
+										}
+									}}
+								>
+									<GreenprintCard {nftData} {boosting} {selectedType} />
+								</div>
+							{/each}
+						{/if}
+					{/if}
+				{:else if selectedRarity && selectedSph && selectedType}
 					{#each $allAssetsStore.filter((asset) => (asset.data.Rarity == selectedRarity.matcher || selectedRarity.matcher == 'All') && (asset.data.Class == selectedType.matcher || selectedType.matcher == 'All') && ((asset.weight / 10000 >= selectedSph.min && asset.weight / 10000 <= selectedSph.max) || selectedSph.name == 'All')) as nftData}
 						<div
 							style="height: 330px;"
@@ -149,7 +436,6 @@
 		disabled={!isSelected}
 		onClick={() => {
 			clearSelects();
-
 			onOkay(isSelected);
 			closeInventory();
 		}}

@@ -182,9 +182,7 @@
 	};
 
 	const disableScroll = () => {
-		document.body.style.position = 'fixed';
-		document.body.style.overflowY = 'auto';
-		document.body.style.width = '100%';
+		document.body.style.overflowY = 'hidden';
 	};
 
 	const enableScroll = () => {
@@ -225,7 +223,16 @@
 		on:mouseup={handleOuterMouseup}
 		bind:this={background}
 		transition:currentTransitionBg={state.transitionBgProps}
-		style={cssBg}
+		style="	position: fixed;
+		z-index: 20;
+		top: 0;
+		left: 0;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		width: 100vw;
+		height: 100vh;
+		background: rgba(0, 0, 0, 0.836);"
 	>
 		<div class="window-wrap" bind:this={wrap} style={cssWindowWrap}>
 			<div

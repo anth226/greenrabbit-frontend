@@ -1,27 +1,38 @@
 <script>
 	import { goto } from '$app/navigation';
-
 	import {
 		drivesStore,
 		dataLoaded,
 		userBalance,
-		assetsInPool,
 		accountStore,
 		storageStore,
-		promoBalancesStore
+		promoBalancesStore,
+		promoAssetsStore
 	} from 'src/stores/store';
-
 	import { toFixedCurrency } from 'src/utils/toFixedCurrency';
 	import { fade, slide } from 'svelte/transition';
 	import SimpleModal from '../SimpleModal.svelte';
 	import ClaimButton from './ClaimButton.svelte';
-	import ExclusiveStakingWrapper from './ExclusiveStakingWrapper.svelte';
-
 	import PlugIn from './PlugIn.svelte';
-	import PromoStakingWrapper from './PromoStakingWrapper.svelte';
 	import UsbStakingInfo from './USBStakingInfo.svelte';
-	let promoBalance = 0;
-	let promoPower = 0;
+
+	import StakingBoard from './StakingBoard.svelte';
+
+	let promoBalance = 0,
+		promoPower = 0;
+	let psn_available = 0,
+		psn_staked = 0,
+		psn_shell = 0,
+		psn_atc = 0;
+	let prn_available = 0,
+		prn_staked = 0,
+		prn_shell = 0,
+		prn_atc = 0;
+	let exn_available = 0,
+		exn_staked = 0,
+		exn_shell = 0,
+		exn_atc = 0;
+
 	$: {
 		let balanceTemp = 0;
 		let powerTemp = 0;
@@ -31,6 +42,42 @@
 		});
 		promoBalance = balanceTemp;
 		promoPower = powerTemp;
+
+		if ($promoAssetsStore) {
+			let prn_stakedTemp = 0,
+				prn_availableTemp = 0,
+				prn_shellTemp = 0;
+			let exn_stakedTemp = 0,
+				exn_availableTemp = 0,
+				exn_shellTemp = 0;
+			$promoAssetsStore.forEach((e) => {
+				e.data.forEach((element) => {
+					if (element.schema.schema_name !== 'exclusives') {
+						if (element.isStaked && element.isStakeable) {
+							prn_stakedTemp++;
+							prn_shellTemp += element.weight;
+						} else if (element.isStakeable) prn_availableTemp++;
+					}
+				});
+			});
+			prn_shell = prn_shellTemp;
+			prn_available = prn_availableTemp;
+			prn_staked = prn_stakedTemp;
+
+			$promoAssetsStore.forEach((e) => {
+				e.data.forEach((element) => {
+					if (element.schema.schema_name === 'exclusives') {
+						if (element.isStaked && element.isStakeable) {
+							exn_stakedTemp++;
+							exn_shellTemp += element.weight;
+						} else if (element.isStakeable) exn_availableTemp++;
+					}
+				});
+			});
+			exn_shell = exn_shellTemp;
+			exn_available = exn_availableTemp;
+			exn_staked = exn_stakedTemp;
+		}
 	}
 	$: totalCollected = Number($accountStore?.collected?.split(' ')[0]) + promoBalance;
 </script>
@@ -38,14 +85,11 @@
 {#if $dataLoaded}
 	<div class="wrapper">
 		<div class="header">
-			<div>
-				<img
-					class="greentooth"
-					alt="Greentooth Staking System"
-					src="https://res.cloudinary.com/green-rabbit-holdings/image/upload/f_auto,q_auto/v1628689408/GreenRabbit/greentooth.png"
-				/>
-			</div>
-
+			<img
+				class="greentooth"
+				alt="Greentooth Staking System"
+				src="https://res.cloudinary.com/green-rabbit-holdings/image/upload/f_auto,q_auto/v1628689408/GreenRabbit/greentooth.png"
+			/>
 			<img
 				in:fade={{ delay: 500, duration: 1000 }}
 				class="greentooth-desktop"
@@ -54,7 +98,7 @@
 			/>
 			<div class="shell-info">
 				<div in:slide={{ delay: 300 }}>
-					<span>Total <span class="bold">Shellinium</span></span>
+					<span>Total Shellinium</span>
 					<span class="teal">{toFixedCurrency($userBalance, 2)}</span>
 				</div>
 				<div in:slide={{ delay: 500 }}>
@@ -65,18 +109,19 @@
 							: '0.00'}</span
 					>
 				</div>
-			</div>
-			<div in:slide={{ delay: 600 }} class="divider" />
-			<div class="claim-info">
 				{#if $accountStore}
 					<div in:slide={{ delay: 700 }}>
-						<span>Available to claim</span>
+						<span>Total Available to claim</span>
 						<span class="teal">{toFixedCurrency(totalCollected, 2)}</span>
 					</div>
-
+				{/if}
+			</div>
+			<div class="claim-info">
+				{#if $accountStore}
 					<div
 						class:disabled={$accountStore.collected == '0.0000 SHELL' && promoBalance == 0.0}
 						in:fade={{ delay: 900 }}
+						style="width: 100%;"
 					>
 						<ClaimButton
 							disabled={$accountStore.collected == '0.0000 SHELL' && promoBalance == 0.0}
@@ -106,120 +151,153 @@
 			</div>
 		</SimpleModal>
 
-		<div>
-			<PromoStakingWrapper />
-		</div>
-		<div>
-			<ExclusiveStakingWrapper />
-		</div>
+		<!-- 	<StakingBoard
+			title="Partner Staking NFTs"
+			btn_label="STAKE PARTNERS"
+			claimForward="partner-staking"
+			available={psn_available}
+			staked={psn_staked}
+			shell={psn_shell}
+			atc={psn_atc}
+		/> -->
+		<StakingBoard
+			title="Promo NFTs"
+			btn_label="STAKE PROMO"
+			claimForward="promo"
+			available={prn_available}
+			staked={prn_staked}
+			shell={prn_shell}
+			atc={prn_atc}
+		/>
+		<StakingBoard
+			title="Exclusive NFTs"
+			btn_label="STAKE EXCLUSIVES"
+			claimForward="exclusive"
+			available={exn_available}
+			staked={exn_staked}
+			shell={exn_shell}
+			atc={exn_atc}
+		/>
 	</div>
 {/if}
 
 <style>
-	.divider {
-		border-left: 1px solid white;
-		height: 40px;
-		margin: auto;
-		display: none;
-	}
 	.wrapper {
 		color: white;
 	}
-	.bold {
-		font-weight: 900;
-	}
+
 	.teal {
 		color: var(--primary-teal);
+		font-weight: 20px;
 	}
 
-	.shell-info,
+	.shell-info {
+		display: flex;
+		align-items: center;
+		width: 45%;
+		justify-content: space-around;
+	}
+
 	.claim-info {
 		display: flex;
-		justify-content: space-around;
-
-		border-top: solid 1px #707070;
-		padding: 18px 28px;
+		padding: 0;
+		justify-content: space-between;
+		align-items: center;
+		width: 15%;
 	}
-	.shell-info div,
-	.claim-info div {
+
+	.shell-info div {
 		display: flex;
 		flex-direction: column;
 		align-items: flex-end;
-		flex: 0 1 125px;
+		font-size: 18px;
+		font-weight: 600;
 	}
 
 	.header {
 		display: flex;
-		flex-direction: column;
-		margin-bottom: 40px;
+		max-width: 1264px;
+		margin: 0 auto 42px;
+		width: 96%;
 	}
+
 	.greentooth-desktop {
 		width: 250px;
 		height: 60px;
-		margin: 0 auto;
-		display: none;
+		display: block;
+		margin-right: 20%;
 	}
+
 	.greentooth {
 		width: 300px;
 		height: 32px;
-		margin: 16px 32px;
+		margin: 35px auto;
+		display: none;
 	}
+
 	.usb {
 		max-width: 1264px;
 		margin: 0 auto;
 		margin-top: 80px;
 		position: relative;
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(155px, max-content));
-		gap: 45px 18px;
 		justify-content: center;
-		padding: initial;
+		gap: 80px 16px;
+		grid-template-columns: repeat(auto-fit, minmax(240px, max-content));
+		margin-bottom: 40px;
 	}
+
 	.disabled {
 		cursor: not-allowed;
 	}
 
-	@media (min-width: 1024px) {
-		.usb {
-			gap: 80px 16px;
-			grid-template-columns: repeat(auto-fit, minmax(240px, max-content));
-		}
+	@media (max-width: 1024px) {
 		.greentooth-desktop {
-			display: block;
-			margin: 0 200px 0 0;
+			margin-right: 5%;
 		}
-		.greentooth {
+		.shell-info {
+			width: 53%;
+		}
+	}
+
+	@media (max-width: 768px) {
+		.greentooth-desktop {
 			display: none;
 		}
-
+		.greentooth {
+			display: block;
+		}
+		.header {
+			flex-direction: column;
+			width: 100%;
+			padding: 0 10px;
+		}
 		.shell-info {
-			border: none;
-			display: flex;
-			flex: 1 0 auto;
-			max-width: 300px;
-			padding: 0;
+			width: 100%;
+			flex-direction: column;
+		}
+		.shell-info div {
+			width: 100%;
+			flex-direction: row;
 			justify-content: space-between;
-			align-items: center;
+			border-bottom: 1px solid #171717;
+			padding-top: 5px;
+			font-size: 16px;
+		}
+		.shell-info div:last-child {
+			border-bottom: none;
 		}
 		.claim-info {
-			border: none;
-			display: flex;
-			flex: 1 0 auto;
-			max-width: 350px;
-			padding: 0;
-			justify-content: space-between;
-			align-items: center;
+			width: 100%;
+			margin-top: 30px;
 		}
-
-		.header {
-			flex-direction: row;
-			max-width: 1264px;
-			margin: 0 auto 42px;
-			justify-content: space-between;
+		.teal {
+			font-weight: 18px;
 		}
-
-		.divider {
-			display: block;
+		.usb {
+			grid-template-columns: repeat(auto-fit, minmax(155px, max-content));
+			gap: 35px 7px;
+			margin-top: 50px;
 		}
 	}
 </style>

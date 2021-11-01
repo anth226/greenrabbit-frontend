@@ -2,7 +2,7 @@
 	export let text;
 </script>
 
-<div class="tooltip">
+<div class="_tooltip">
 	<slot />
 	<span class="tooltiptext">
 		<h1>{text.title}</h1>
@@ -15,7 +15,7 @@
 		font-size: 22px;
 		font-weight: 900;
 	}
-	.tooltip {
+	._tooltip {
 		position: relative;
 		display: inline-block;
 
@@ -27,7 +27,7 @@
 		left: unset;
 	}
 
-	.tooltip .tooltiptext {
+	._tooltip .tooltiptext {
 		visibility: hidden;
 		width: 350px;
 		background-color: #fff;
@@ -42,7 +42,7 @@
 		margin-left: -60px;
 	}
 
-	.tooltip .tooltiptext::after {
+	._tooltip .tooltiptext::after {
 		content: '';
 		position: absolute;
 		top: 100%;
@@ -53,7 +53,7 @@
 		border-color: white transparent transparent transparent;
 	}
 
-	.tooltip:hover .tooltiptext {
+	._tooltip:hover .tooltiptext {
 		visibility: visible;
 	}
 	@media (max-width: 1024px) {

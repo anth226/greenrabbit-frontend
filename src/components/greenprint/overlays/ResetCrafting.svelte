@@ -47,7 +47,7 @@
 			}, TRANSACTION_TIMEOUT_MS);
 		} catch (err) {
 			close();
-			window.pushToast(err.message, 'fa fa-exclamation-triangle ', '#e52659');
+			window.pushToast(err.message, 'error', 'Transaction error', 6);
 			/*   addToast(err.message, { appearance: 'error' })
       setAwaitingConfirmation(0) /////////SHOW ERROR TOAST */
 		}
@@ -100,6 +100,7 @@
 	h1 {
 		font-size: 22px;
 		font-weight: 900;
+		padding: 16px;
 	}
 
 	.content {

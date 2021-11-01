@@ -74,7 +74,7 @@
 				handleReveal(asset); //!!!! TESTING
 			}, 1000);
 		} catch (err) {
-			window.pushToast(err.message, 'fa fa-exclamation-triangle ', '#e52659');
+			window.pushToast(err.message, 'error', 'Transaction error', 6);
 
 			loading = false;
 		}
@@ -116,14 +116,22 @@
 
 	async function handleReveal(asset) {
 		let claimData = null;
+
 		while (!claimData) {
-			greenRabbitApi.fetchClaims(asset.asset_id).then((claims) => {
-				if (claims.length > 0) claimData = claims;
-			});
+			if (nftData.pack == 'atomicpacksx') {
+				greenRabbitApi.fetchClaims(asset.asset_id).then((claims) => {
+					if (claims.length > 0) claimData = claims;
+				});
+			} else {
+				greenRabbitApi.fetchClaimsNefty(asset.asset_id, 'neftyblocksp').then((claims) => {
+					if (claims.length > 0) claimData = claims;
+				});
+			}
 			await resolveAfter1Second();
 		}
 		if (claimData) {
-			revealData(claimData, asset);
+			if (nftData.pack == 'atomicpacksx') revealData(claimData, asset);
+			else revealData(claimData[0], asset);
 		}
 	}
 
@@ -132,39 +140,73 @@
 			claim_id: asset.asset_id,
 			asset_ids: []
 		};
-		claim.forEach((c) => {
-			console.log('each claim', c);
-			claimRequest.asset_ids.push(c.template_id);
-		});
-		claimable = claimRequest;
-		atomicAssetsApi.getTemplatesById(claimRequest.asset_ids).then((res) => {
-			let maxRarityTemp = 0;
-			for (let a of res.data) {
-				if (a.immutable_data?.Rarity) {
-					if (rarityScale[a.immutable_data.Rarity.toLowerCase()] > maxRarityTemp) {
-						maxRarityTemp = rarityScale[a.immutable_data.Rarity.toLowerCase()];
+
+		if (nftData.pack == 'atomicpacksx') {
+			claim.forEach((c) => {
+				claimRequest.asset_ids.push(c.template_id);
+			});
+			claimable = claimRequest;
+			atomicAssetsApi.getTemplatesById(claimRequest.asset_ids).then((res) => {
+				let maxRarityTemp = 0;
+				for (let a of res.data) {
+					if (a.immutable_data?.Rarity) {
+						if (rarityScale[a.immutable_data.Rarity.toLowerCase()] > maxRarityTemp) {
+							maxRarityTemp = rarityScale[a.immutable_data.Rarity.toLowerCase()];
+						}
+					}
+					for (let c of claim) {
+						c.show = true;
+						if (a.template_id == c.template_id) c.templateData = a;
 					}
 				}
-				for (let c of claim) {
-					c.show = true;
-					if (a.template_id == c.template_id) c.templateData = a;
+				claimedData = claim;
+				//console.log('@claimeddata', claimedData);
+				maxRarity = maxRarityTemp;
+				rng = getRandomInt(0, 4);
+				revealPack = asset;
+				if (video) {
+					setTimeout(() => {
+						videoplayer.play();
+					}, 300);
 				}
-			}
-			claimedData = claim;
-			maxRarity = maxRarityTemp;
-			rng = getRandomInt(0, 4);
-			revealPack = asset;
-			if (video) {
-				setTimeout(() => {
-					videoplayer.play();
-				}, 300);
-			}
-		});
+			});
+		} else {
+			claim.claims.forEach((c) => {
+				claimRequest.asset_ids.push(c.claim[1].asset_id);
+			});
+			claimable = claimRequest;
+
+			atomicAssetsApi.getAssetsById(claimRequest.asset_ids).then((res) => {
+				let maxRarityTemp = 0;
+				for (let a of res.data) {
+					if (a.template.immutable_data?.Rarity) {
+						if (rarityScale[a.template.immutable_data.Rarity.toLowerCase()] > maxRarityTemp) {
+							maxRarityTemp = rarityScale[a.template.immutable_data.Rarity.toLowerCase()];
+						}
+					}
+					for (let c of claim.claims) {
+						c.show = true;
+						if (a.asset_id == c.claim[1].asset_id) c.templateData = a;
+					}
+				}
+				claimedData = claim.claims;
+				console.log('@claimeddata', claimedData);
+				maxRarity = maxRarityTemp;
+				rng = getRandomInt(0, 4);
+				revealPack = asset;
+				if (video) {
+					setTimeout(() => {
+						videoplayer.play();
+					}, 300);
+				}
+			});
+		}
 	}
 
 	async function handleRevealClick() {
-		const actions = [
-			{
+		let actions = [];
+		if (nftData.pack == 'atomicpacksx') {
+			actions.push({
 				account: 'atomicpacksx',
 				name: 'claimunboxed',
 				authorization: [
@@ -177,8 +219,23 @@
 					origin_roll_ids: Object.keys(claimable.asset_ids).map(Number),
 					pack_asset_id: claimable.claim_id
 				}
-			}
-		];
+			});
+		} else {
+			actions.push({
+				account: 'neftyblocksp',
+				name: 'claim',
+				authorization: [
+					{
+						actor: $activeUser.accountName,
+						permission: $activeUser.requestPermission
+					}
+				],
+				data: {
+					roll_indexes: Object.keys(claimable.asset_ids).map(Number),
+					claim_id: claimable.claim_id
+				}
+			});
+		}
 
 		let transaction = { actions };
 		try {
@@ -192,7 +249,7 @@
 				revealKickOff();
 			}, 200);
 		} catch (err) {
-			window.pushToast(err.message, 'fa fa-exclamation-triangle ', '#e52659');
+			window.pushToast(err.message, 'error', 'Transaction error', 6);
 		}
 	}
 	async function revealKickOff() {
@@ -206,8 +263,15 @@
 	async function matchConfigs(asset) {
 		if (nftData.pack) {
 			const res = await greenRabbitApi.fetchPackConfig(nftData.pack, asset.template_id);
+
 			lastConfig = res[0];
-			if (nftData.pack === 'atomicpacksx') return 'unbox';
+			if (
+				nftData.pack === 'atomicpacksx' ||
+				nftData.pack === 'neftyblpacks' ||
+				nftData.pack === 'neftyblocksp'
+			)
+				return 'unbox';
+
 			return lastConfig.pack_name;
 		}
 		return false;
@@ -219,7 +283,9 @@
 	}
 
 	async function removeAssetFromReveal(asset) {
-		claimedData = claimedData.filter((item) => item.origin_roll_id !== asset.origin_roll_id);
+		claimedData = claimedData.filter(
+			(item) => item.templateData.asset_id !== asset.templateData.asset_id
+		);
 	}
 
 	$: {
@@ -233,7 +299,7 @@
 	}
 	function getVideoUrl() {
 		if (video.startsWith('http')) return video;
-		else return `https://ipfs.io/ipfs/${video}`;
+		else return `https://greenrabbit.mypinata.cloud/ipfs/${video}`;
 	}
 </script>
 
@@ -259,15 +325,24 @@
 					in:fly={{ y: -300, duration: 400, delay: 400 + 400 * i }}
 					out:fly={{ y: 300, duration: 400 }}
 				>
-					<img
-						style="position:absolute;max-width:300px;min-width:300px; max-height:450px;min-height:50px; object-fit:scale-down;"
-						src={`https://ipfs.io/ipfs/${
-							claim.templateData.immutable_data.img
-								? claim.templateData.immutable_data.img
-								: claim.templateData.immutable_data.video
-						}`}
-						alt=""
-					/>
+					<div
+						class="imgwrap"
+						style="position:absolute;display:flex;justify-content:center;align-items:center;flex-direction:column"
+					>
+						<img
+							style="position:absolute;max-width:300px;min-width:300px; max-height:450px;min-height:50px; object-fit:scale-down;"
+							src={`https://greenrabbit.mypinata.cloud/ipfs/${
+								claim.templateData.template.immutable_data.img2
+									? claim.templateData.template.immutable_data.img2
+									: claim.templateData.template.immutable_data.img
+							}`}
+							alt={claim.templateData.data.name}
+						/>{#if claimedData.length == i + 1}
+							<span style="margin-top:40px;">
+								{claim.templateData.data.name} #{claim.templateData.template_mint} - {claim
+									.templateData.data.Rarity}
+							</span>{/if}
+					</div>
 				</div>
 			{/each}
 		{:else if video}
@@ -292,7 +367,7 @@
 				on:click={handleRevealClick}
 				class="revealpack_image"
 				style="max-width: 274px; margin: 0 auto;"
-				src={`https://ipfs.io/ipfs/${revealPack.data.img}`}
+				src={`https://greenrabbit.mypinata.cloud/ipfs/${revealPack.data.img}`}
 				alt="pack"
 			/>
 
@@ -391,7 +466,7 @@
 		color: white;
 		cursor: pointer;
 		padding: 5px 15px;
-
+		z-index: 99999;
 		border-radius: 6px;
 	}
 	.revealpack_image {
