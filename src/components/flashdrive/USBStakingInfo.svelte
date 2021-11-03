@@ -4,9 +4,9 @@
 	import { toFixedCurrency } from 'src/utils/toFixedCurrency';
 	import { slide } from 'svelte/transition';
 	import { getCooldownData } from 'src/utils/helpers';
-	import { getContext } from 'svelte';
-	import ResetInventory from '../misc/ResetInventory.svelte';
-	const { openInventory, closeInventory } = getContext('notsimple-modal');
+
+	import ResetIcon from '../misc/ResetIcon.svelte';
+
 	let available = 0;
 	let staked = 0;
 	let cooldown = 0;
@@ -53,16 +53,8 @@
 			<span>On Cooldown</span>
 			<span class="teal">{cooldown}</span>
 		</div>
-
-		<div
-			class:disabled={cooldown == 0}
-			class="reset-icon unselectable"
-			on:click={() => {
-				if (cooldown)
-					openInventory(ResetInventory, { showAll: true, selectedType: { matcher: 'All' } });
-			}}
-		>
-			R
+		<div style="margin-right:25px;">
+			<ResetIcon {cooldown} />
 		</div>
 	</div>
 
@@ -75,22 +67,6 @@
 </div>
 
 <style>
-	.disabled {
-		opacity: 0.3;
-		cursor: default;
-	}
-	.reset-icon {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		width: 45px;
-		height: 45px;
-		margin-right: 54px;
-		border: solid 1px var(--greenish-cyan);
-
-		background-image: linear-gradient(to right, #44be98 3%, #20906d 84%);
-		cursor: pointer;
-	}
 	.wrapper {
 		color: white;
 		border-top: solid 1px #707070;

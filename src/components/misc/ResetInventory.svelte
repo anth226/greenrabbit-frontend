@@ -345,7 +345,7 @@
 									</div>
 								{/if}
 							{:else}
-								<div class="noassets">Your Inventory is empty</div>
+								<div class="noassets">No items on cooldown</div>
 							{/each}
 						{/if}
 					</div>

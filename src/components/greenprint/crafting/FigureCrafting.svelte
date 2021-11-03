@@ -38,6 +38,7 @@
 	import NextAttemptTimer from 'src/components/NextAttemptTimer.svelte';
 	import InventoryMaster from '../overlays/InventoryMaster.svelte';
 	import { atomicAssetsApi } from 'src/utils/atomic.assets.api';
+	import ResetIcon from 'src/components/misc/ResetIcon.svelte';
 
 	let stylingCraftStatus;
 
@@ -862,6 +863,11 @@
 			</div>
 		</div>
 		<div class="aux">
+			<div class="reset">
+				<ResetIcon />
+				<div class="reset-label">Reset Cooldowns</div>
+			</div>
+
 			<div class="aux-btn">
 				<p>SHOW AUXILIARY PORT</p>
 				<label class="switch">
@@ -1022,6 +1028,17 @@
 </div>
 
 <style>
+	.reset {
+		display: flex;
+		flex-direction: row;
+	}
+	.reset-label {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		margin-right: 44px;
+		margin-top: 7px;
+	}
 	.shell-help img {
 		height: 25px;
 		width: 15px;
@@ -1163,7 +1180,7 @@
 		padding: 0 14px;
 		margin-top: 42px;
 		display: flex;
-		flex-direction: column;
+		flex-direction: row;
 		position: relative;
 		cursor: pointer;
 	}

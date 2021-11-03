@@ -53,7 +53,7 @@
 		else if (category == 'gpfusion' && overall)
 			var endpoint = `https://api.greenrabbitgame.io/v1/fusion/leaderboard?timeframe=${timeframe}&outcome=${outcome}&fusion_type=Greenprint`;
 		else if (category == 'orbfusion' && !overall)
-			var endpoint = `https://api.greenrabbitgame.io/v1/fusion/leaderboard?rarity=${rarity}&timeframe=${timeframe}&fusion_type=Orb`;
+			var endpoint = `https://api.greenrabbitgame.io/v1/fusion/leaderboard?rarity=${rarity}&outcome=${outcome}&timeframe=${timeframe}&fusion_type=Orb`;
 		else if (category == 'orbfusion' && overall)
 			var endpoint = `https://api.greenrabbitgame.io/v1/fusion/leaderboard?timeframe=${timeframe}&fusion_type=Orb`;
 		else if (category == 'crafting')
@@ -225,16 +225,26 @@
 					</div>
 				{/if}{/if}
 		{:else if masterTab == 'orbfusion'}
-			<!-- 	<div class="tab">
+			<div class="tab">
 				<div class="tab-wrap">
 					<div class="button-wrap">
 						<button
 							class="tablinks"
 							class:selected={currentTab === 'fail'}
 							on:click={() => {
-								x = -200;
+								x = 200;
 								currentTab = 'fail';
-							}}>SUCCESSFUL FUSIONS</button
+							}}>FAILED ORB FUSIONS</button
+						>
+					</div>
+					<div class="button-wrap">
+						<button
+							class="tablinks"
+							class:selected={currentTab === 'success'}
+							on:click={() => {
+								x = -200;
+								currentTab = 'success';
+							}}>SUCCESSFUL ORB FUSIONS</button
 						>
 					</div>
 					{#if innerWidth > 1390}
@@ -248,7 +258,7 @@
 						</div>
 					{/if}
 				</div>
-			</div> -->
+			</div>
 			{#if data && overallData}{#if currentTab === 'fail'}
 					<div
 						class="table-wrapper"

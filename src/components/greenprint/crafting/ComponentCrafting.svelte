@@ -39,6 +39,7 @@
 	import { atomicAssetsApi } from 'src/utils/atomic.assets.api';
 	import InventoryMaster from '../overlays/InventoryMaster.svelte';
 	import NextAttemptTimer from 'src/components/NextAttemptTimer.svelte';
+	import ResetIcon from 'src/components/misc/ResetIcon.svelte';
 
 	const TWENT_FOUR_HOURS_IN_SECONDS = 60 * 60 * 24;
 	const FIGURE_SECOND_ATTEMPT_FAIL_CHANCE = 15;
@@ -716,58 +717,65 @@
 				/>
 			</div>
 		</div>
-		<div class="aux">
-			<div class="aux-btn">
-				<p>SHOW AUXILIARY PORT</p>
-				<label class="switch">
-					<input
-						type="checkbox"
-						bind:checked={showAux}
-						on:click={() => {
-							setTimeout(() => {
-								showAux &&
-									innerWidth < 1024 &&
-									document.querySelector('.bottom').scrollIntoView({
-										behavior: 'smooth',
-										block: 'start'
-									});
-							}, 100);
-						}}
-					/>
-					<span class="slider round" />
-				</label>
-			</div>
-			{#if showAux}
-				<div class="aux-wrapper" transition:slide={{ duration: 200 }}>
-					{#if !$craftingState.fourcomponent.aux}
-						<div
-							on:click={() =>
-								openInventory(InventoryMaster, {
-									filterType: 'credit',
-									slot: 'aux',
-									rarity: 'auxcomponent',
-									hasForm: true,
-									onOkay: onOkayAux
-								})}
-							class="aux-port"
-						>
-							<div class="_placeholder">+</div>
-						</div>
-					{:else}
-						<div class="selected-aux">
-							<img
-								style="max-width:300px;object-fit:scale-down"
-								alt="Shellinium Credit"
-								src={'https://res.cloudinary.com/green-rabbit-holdings/image/upload/c_scale/GreenRabbit/nfts/' +
-									$craftingState.fourcomponent.aux.data.img +
-									'.png'}
-							/>
-						</div>
-					{/if}
-					<!-- <p class="aux-name">{auxName}</p> -->
-					<p class="port">AUXILIARY PORT</p>
+		<div class="corner">
+			<div class="aux">
+				<div class="reset">
+					<ResetIcon />
+					<div class="reset-label">Reset Cooldowns</div>
 				</div>
-			{/if}
+
+				<div class="aux-btn">
+					<p>SHOW AUXILIARY PORT</p>
+					<label class="switch">
+						<input
+							type="checkbox"
+							bind:checked={showAux}
+							on:click={() => {
+								setTimeout(() => {
+									showAux &&
+										innerWidth < 1024 &&
+										document.querySelector('.bottom').scrollIntoView({
+											behavior: 'smooth',
+											block: 'start'
+										});
+								}, 100);
+							}}
+						/>
+						<span class="slider round" />
+					</label>
+				</div>
+				{#if showAux}
+					<div class="aux-wrapper" transition:slide={{ duration: 200 }}>
+						{#if !$craftingState.fourcomponent.aux}
+							<div
+								on:click={() =>
+									openInventory(InventoryMaster, {
+										filterType: 'credit',
+										slot: 'aux',
+										rarity: 'auxcomponent',
+										hasForm: true,
+										onOkay: onOkayAux
+									})}
+								class="aux-port"
+							>
+								<div class="_placeholder">+</div>
+							</div>
+						{:else}
+							<div class="selected-aux">
+								<img
+									style="max-width:300px;object-fit:scale-down"
+									alt="Shellinium Credit"
+									src={'https://res.cloudinary.com/green-rabbit-holdings/image/upload/c_scale/GreenRabbit/nfts/' +
+										$craftingState.fourcomponent.aux.data.img +
+										'.png'}
+								/>
+							</div>
+						{/if}
+						<!-- <p class="aux-name">{auxName}</p> -->
+						<p class="port">AUXILIARY PORT</p>
+					</div>
+				{/if}
+			</div>
 		</div>
 	</div>
 	<div class="bottom">
@@ -879,6 +887,17 @@
 </div>
 
 <style>
+	.reset {
+		display: flex;
+		flex-direction: row;
+	}
+	.reset-label {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		margin-right: 44px;
+		margin-top: 7px;
+	}
 	.selected-aux img {
 		width: 140px;
 		height: 140px;
@@ -1107,6 +1126,14 @@
 	}
 
 	@media (min-width: 1240px) {
+		.reset-label {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			margin-right: 44px;
+			margin-top: 7px;
+		}
+
 		.attempts {
 			padding: 0 30px;
 			font-size: 19px;
@@ -1130,6 +1157,7 @@
 			top: 0;
 			right: 0;
 			margin-top: 16px;
+			flex-direction: row;
 		}
 		.aux-wrapper {
 			margin-top: 33px;
