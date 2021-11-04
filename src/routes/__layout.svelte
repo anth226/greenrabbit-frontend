@@ -1023,7 +1023,7 @@
 						<slot />
 					</PageTransition>
 				{/if}
-			{:else if $page.path.includes('explorer') || $page.path.includes('leaderboard') || $page.path.includes('store')}
+			{:else if $page.path.includes('explorer') || $page.path.includes('leaderboard') || $page.path.includes('store') || $page.path.includes('mission')}
 				<div class="gradient-bg" />
 				<PageTransition refresh={key}>
 					<slot />
