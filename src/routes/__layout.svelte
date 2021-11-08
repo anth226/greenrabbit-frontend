@@ -1059,7 +1059,7 @@
 		}
 	}
 	.gradient-bg {
-		height: 55px;
+		/* height: 55px; */
 		background: linear-gradient(
 			180deg,
 			rgba(54, 255, 191, 0.342) 0%,
