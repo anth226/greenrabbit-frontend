@@ -281,5 +281,14 @@
 			height: 50px;
 			margin-bottom: 10px;
 		}
+		.right-grid {
+			width: 100%;
+			display: flex;
+			overflow-x: scroll;
+			padding: 0 20px;
+		}
+		.right-grid::-webkit-scrollbar {
+			display: none;
+		}
 	}
 </style>
