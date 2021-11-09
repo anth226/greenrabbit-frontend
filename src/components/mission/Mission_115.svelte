@@ -11,8 +11,9 @@
 	import Shape1 from '../../../static/assets/mission/Shape1.png';
 	import Shape2 from '../../../static/assets/mission/Shape2.png';
 	import Shape3 from '../../../static/assets/mission/Shape3.png';
-	import MoltenMountain from '../../../static/assets/mission/MoltenMountain.png';
-	import Mission03 from '../../../static/assets/mission/mission03.png';
+	import MoltenMountain2 from '../../../static/assets/mission/MoltenMountain2.png';
+	import Mission01 from '../../../static/assets/mission/Mission01.png';
+	import Head from '../../../static/assets/mission/Head.png';
 </script>
 
 <div class="container">
@@ -41,28 +42,28 @@
 				<div class="left-header">
 					<img src={Arrow} alt="arrow" class="arrow" />
 					<img src={Character2} alt="character" class="character" />
-					<img src={Mission03} alt="mission" class="mission" />
+					<img src={Mission01} alt="mission" class="mission" />
 					<img src={Symbol} alt="symbol" class="symbol" />
 				</div>
 				<div class="left-footer">
 					<div class="left-footer-icon">
 						<div class="left-group-item">
 							<div class="left-icon">
-								<img src={Shape1} alt="Shape1" class="" />
+								<img src={Shape1} alt="Shape1" />
 							</div>
 							<div class="left-text">10</div>
 						</div>
 						<div class="left-group-item">
 							<div class="left-icon">
-								<img src={Shape2} alt="Shape1" class="" />
-								<img src={Shape2} alt="Shape1" class="" />
-								<img src={Shape2} alt="Shape1" class="" />
+								<img src={Shape2} alt="Shape1" />
+								<img src={Shape2} alt="Shape1" />
+								<img src={Shape2} alt="Shape1" />
 							</div>
 							<div class="left-text">7</div>
 						</div>
 						<div class="left-group-item">
 							<div class="left-icon">
-								<img src={Shape3} alt="Shape1" class="" />
+								<img src={Shape3} alt="Shape1" />
 							</div>
 							<div class="left-text">13</div>
 						</div>
@@ -76,7 +77,11 @@
 			<div class="right">
 				<p class="right-text">MISSIONS</p>
 				<div class="right-grid">
-					<img src={MoltenMountain} alt="square plus" />
+					<div class="rectangle">
+						<img src={Head} alt="head" class="rectangle-head" />
+						<div class="rectangle-text">Your Forager has returned!</div>
+						<div class="rectangle-btn">MISSION RESULTS</div>
+					</div>
 					<img src={SquarePlus} alt="square plus" />
 					<img src={SquareLock} alt="square lock" />
 					<img src={SquareLock} alt="square lock" />
@@ -231,6 +236,37 @@
 		left: 50%;
 		transform: translate(-50%, -37%);
 	}
+	.rectangle {
+		background-image: url('assets/mission/Rectangle_white.png');
+		background-size: cover;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+	}
+	.rectangle-btn {
+		width: 175px;
+		height: 39px;
+		background-color: #44be98;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		font-family: 'Lato';
+		font-size: 16px;
+	}
+	.rectangle-head {
+		width: 65px;
+		height: 66px;
+	}
+	.rectangle-text {
+		padding-top: 14px;
+		width: 80%;
+		font-family: 'Lato';
+		font-size: 18px;
+		text-align: center;
+		height: 66px;
+		line-height: 17px;
+	}
 	.right {
 		width: 50%;
 		display: flex;
@@ -254,7 +290,8 @@
 		font-size: 24px;
 		font-weight: bold;
 	}
-	@media (max-width: 768px) {
+
+	@media only screen and (max-width: 768px) {
 		.container {
 			background-image: url('/assets/mission/bg_mobile.png');
 			background-size: 100% 60%;
@@ -290,6 +327,12 @@
 			height: 50px;
 			margin-bottom: 10px;
 		}
+		.rectangle {
+			/* width: 257px; */
+			padding-left: 41px;
+			padding-right: 41px;
+			height: 240px;
+		}
 		.right-grid {
 			width: 100%;
 			display: flex;
@@ -298,6 +341,22 @@
 		}
 		.right-grid::-webkit-scrollbar {
 			display: none;
+		}
+	}
+	@media only screen and (min-width: 769px) and (max-width: 1366px) {
+		.rectangle {
+			width: auto;
+			height: auto;
+			padding: 5px;
+		}
+		.rectangle-btn {
+			width: auto;
+			height: auto;
+			padding: 5px;
+		}
+		.rectangle-text {
+			height: auto;
+			width: 100%;
 		}
 	}
 </style>

@@ -11,8 +11,8 @@
 	import Shape1 from '../../../static/assets/mission/Shape1.png';
 	import Shape2 from '../../../static/assets/mission/Shape2.png';
 	import Shape3 from '../../../static/assets/mission/Shape3.png';
-	import MoltenMountain from '../../../static/assets/mission/MoltenMountain.png';
-	import Mission03 from '../../../static/assets/mission/mission03.png';
+	import MoltenMountain2 from '../../../static/assets/mission/MoltenMountain2.png';
+	import Mission01 from '../../../static/assets/mission/Mission01.png';
 </script>
 
 <div class="container">
@@ -41,14 +41,14 @@
 				<div class="left-header">
 					<img src={Arrow} alt="arrow" class="arrow" />
 					<img src={Character2} alt="character" class="character" />
-					<img src={Mission03} alt="mission" class="mission" />
+					<img src={Mission01} alt="mission" class="mission" />
 					<img src={Symbol} alt="symbol" class="symbol" />
 				</div>
 				<div class="left-footer">
 					<div class="left-footer-icon">
 						<div class="left-group-item">
 							<div class="left-icon">
-								<img src={Shape1} alt="Shape1" class="" />
+								<img src={Shape1} alt="Shape1" />
 							</div>
 							<div class="left-text">10</div>
 						</div>
@@ -76,7 +76,7 @@
 			<div class="right">
 				<p class="right-text">MISSIONS</p>
 				<div class="right-grid">
-					<img src={MoltenMountain} alt="square plus" />
+					<img src={MoltenMountain2} alt="square plus" />
 					<img src={SquarePlus} alt="square plus" />
 					<img src={SquareLock} alt="square lock" />
 					<img src={SquareLock} alt="square lock" />
