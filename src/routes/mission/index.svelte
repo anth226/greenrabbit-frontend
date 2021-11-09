@@ -1,5 +1,6 @@
 <script>
 	import Mission_110 from 'src/components/mission/Mission_110.svelte';
+	import Mission_113 from 'src/components/mission/Mission_113.svelte';
 	import Mission_119 from 'src/components/mission/Mission_119.svelte';
 	import Mission_120 from 'src/components/mission/Mission_120.svelte';
 	import Mission from '../../components/mission/Mission.svelte';
@@ -11,6 +12,7 @@
 </svelte:head>
 <!-- <Mission /> -->
 <!-- <Mission_119/> -->
-<Mission_120 />
+<!-- <Mission_120 /> -->
 <!-- <Mission_110 /> -->
 <!-- <Mission100 /> -->
+<Mission_113 />
