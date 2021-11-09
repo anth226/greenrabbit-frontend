@@ -150,9 +150,23 @@
 	}
 	.left-footer {
 		display: flex;
+		height: 140px;
 		flex-direction: column;
 		margin-top: 25px;
 		width: 100%;
+		background-image: url('/assets/mission/bg_footer.png');
+		position: relative;
+	}
+	.left-footer::after {
+		position: absolute;
+		content: '';
+		width: 67%;
+		height: 3px;
+		left: 13%;
+		background-repeat: no-repeat;
+		background-size: contain;
+		bottom: 0;
+		background-image: url('/assets/mission/border_footer.png');
 	}
 	.left-footer-icon {
 		display: flex;
@@ -244,9 +258,11 @@
 		.left {
 			width: 100%;
 		}
+		.left-footer::after {
+			width: 75%;
+		}
 		.right {
 			width: 100%;
-			border-top: 1px solid #aaa;
 			padding-top: 50px;
 		}
 		.arrow {
