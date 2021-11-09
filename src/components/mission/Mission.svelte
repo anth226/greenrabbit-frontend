@@ -84,40 +84,75 @@
 </div>
 
 <style>
-	.arrow {
-		position: absolute;
-		top: 50%;
+	.container {
+		background-image: url('/assets/mission/bg.png');
+		background-repeat: no-repeat;
+		background-size: cover;
+		background-position: center;
+		background-color: rgba(0, 0, 0, 0.3);
+		background-blend-mode: soft-light;
+		min-height: calc(100vh - 173px);
 	}
-	.character {
-		padding-left: 55px;
-	}
-	.btn {
-		border: 1px solid #fff;
-		outline: none;
+	.wrapper {
+		max-width: 1440px;
 		color: white;
-		background-color: black;
-		padding: 5px 30px;
-		border-radius: 15px;
+		width: 100%;
+		height: auto;
+		padding-bottom: 40px;
+		margin: 0 auto;
 	}
-	.input {
-		width: 80px;
-		height: 30px;
-		line-height: 30px;
-		background-color: black;
-		color: #fff;
-		font-weight: bold;
-		text-align: center;
-		border-radius: 2px;
-		border: #f0eded17 solid 0.5px;
+	.menu {
+		width: 50%;
+		margin: 0 auto;
+		padding-top: 20px;
+		justify-content: space-between;
+		display: flex;
+		align-items: center;
+	}
+	.main {
+		width: 100%;
+		display: flex;
+		margin-top: 50px;
 	}
 	.left {
 		width: 50%;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+	.left-title {
+		font-size: 24px;
+		font-weight: bold;
+		text-align: center;
+		margin-bottom: 22px;
+	}
+	.left-header {
+		position: relative;
+		width: 100%;
+		height: 370px;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+	.arrow {
+		position: absolute;
+		top: 45%;
+	}
+	.character {
+		height: 100%;
+		margin-left: 30px;
+	}
+	.symbol {
+		position: absolute;
+		top: 10px;
+		right: 150px;
+		width: 70px;
 	}
 	.left-footer {
 		display: flex;
 		flex-direction: column;
-		position: relative;
-		top: -125px;
+		margin-top: 25px;
+		width: 100%;
 	}
 	.left-footer-icon {
 		display: flex;
@@ -136,42 +171,37 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		padding-top: 20px;
+		padding-top: 15px;
 	}
-	.left-header {
-		position: relative;
-		display: flex;
-		align-items: center;
-		height: 90%;
-		padding-left: 140px;
-	}
+
 	.left-icon {
 		display: flex;
 	}
 	.left-text {
 		padding-left: 5px;
 	}
-	.left-title {
-		font-size: 24px;
-		position: relative;
+
+	.btn {
+		border: 1px solid #fff;
+		outline: none;
+		color: white;
+		background-color: black;
+		padding: 5px 30px;
+		border-radius: 15px;
+		margin-top: 7px;
+	}
+	.input {
+		width: 80px;
+		height: 30px;
+		line-height: 30px;
+		background-color: black;
+		color: #fff;
 		font-weight: bold;
-		top: 150px;
-		display: flex;
-		justify-content: center;
+		text-align: center;
+		border-radius: 2px;
+		border: #f0eded17 solid 0.5px;
 	}
-	.main {
-		width: 100%;
-		display: flex;
-		justify-content: center;
-	}
-	.menu {
-		width: 50%;
-		margin: 0 auto;
-		padding-top: 20px;
-		justify-content: space-between;
-		display: flex;
-		align-items: center;
-	}
+
 	.menu-item {
 		width: 25%;
 		justify-content: space-around;
@@ -180,12 +210,14 @@
 	}
 	.right {
 		width: 50%;
-		padding-top: 150px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
 	}
 	.right-grid {
 		width: 70%;
 		display: grid;
-		grid-template-columns: 50% 50%;
+		grid-template-columns: 45% 45%;
 		grid-gap: 30px;
 	}
 	.right-text {
@@ -195,166 +227,43 @@
 		font-size: 24px;
 		padding-bottom: 40px;
 	}
-	.symbol {
-		position: relative;
-		top: -140px;
-		left: -50px;
-	}
 	.text {
 		font-size: 24px;
 		font-weight: bold;
 	}
-	.wrapper {
-		max-width: 1440px;
-		color: white;
-		width: 100%;
-		height: auto;
-		padding-bottom: 40px;
-		margin: 0 auto;
-	}
-	.container {
-		background: url('/assets/mission/bg.png');
-		background-repeat: no-repeat;
-		background-size: cover;
-	}
-
-	@media (max-width: 767px) {
+	@media (max-width: 768px) {
+		.container {
+			background-image: url('/assets/mission/bg_mobile.png');
+			background-size: 100% 60%;
+			background-position: top;
+		}
+		.main {
+			flex-direction: column;
+			gap: 30px;
+		}
+		.left {
+			width: 100%;
+		}
+		.right {
+			width: 100%;
+			border-top: 1px solid #aaa;
+			padding-top: 50px;
+		}
 		.arrow {
 			display: none;
 		}
-		.character {
-			padding-left: 0;
-		}
-		.left {
-			width: 100%;
-			height: auto;
-			background: url('/assets/mission/bg.png');
-			background-position: 15%;
-			padding-bottom: 20px;
-		}
-		.left-footer {
-			top: 0;
-		}
-		.left-footer-icon {
-			padding-top: 20px;
-		}
-		.left-group-text {
-			padding-top: 60px;
-		}
-		.left-header {
-			height: auto;
-		}
-		.left-title {
-			top: 0;
-			padding-top: 60px;
-		}
-		.main {
-			flex-direction: column;
+		.symbol {
+			right: 20px;
 		}
 		.menu {
 			width: 100%;
 		}
-		.right {
-			padding: 30px;
-			width: 100%;
-		}
-		.right-grid {
-			width: 90%;
-			margin: 0 auto;
-			grid-gap: 20px;
-			padding-bottom: 20px;
-		}
-		.right-text {
-			width: 100%;
-			padding-bottom: 20px;
-		}
-		.wrapper {
-			background: none;
-		}
-		.container {
-			background: none;
-		}
-	}
-	@media (min-width: 768px) and (max-width: 1280px) {
-		.main {
+		.menu-item {
 			flex-direction: column;
-		}
-		.left {
-			margin: 0 auto;
-			width: 100%;
-			height: auto;
-			background: url('/assets/mission/bg.png');
-			background-position: 0;
-			padding-bottom: 20px;
-		}
-		.left-header {
-			padding-top: 155px;
-			width: 100%;
-			padding-left: 0;
-			justify-content: center;
-		}
-		.left-footer {
-			top: 0px;
-		}
-		.left-title {
-			top: 125px;
-		}
-		.right {
-			width: 80%;
-			margin: 0 auto;
-			padding-top: 40px;
-			padding-bottom: 20px;
-		}
-		.right-text {
-			width: 100%;
-		}
-		.right-grid {
-			width: 80%;
-			margin: 0 auto;
-		}
-		.menu {
-			width: 80%;
-		}
-		.wrapper {
-			background: none;
-		}
-		.container {
-			background: none;
-		}
-	}
-	@media (max-width: 550px) {
-		.character {
-			padding-left: 65px;
-		}
-		.input {
-			width: 40px;
-		}
-
-		.left {
-			height: auto;
-			padding-bottom: 20px;
-		}
-		.left-header {
-			width: 100%;
-			padding-left: 0;
 		}
 		.menu-img {
-			width: 30%;
-		}
-		.symbol {
-			top: -120px;
-			left: -120px;
-		}
-	}
-	@media (max-width: 420px) {
-		.right {
-			overflow: hidden;
-		}
-		.right-grid {
-			display: flex;
-		}
-		.symbol {
-			top: -90px;
+			height: 50px;
+			margin-bottom: 10px;
 		}
 	}
 </style>
