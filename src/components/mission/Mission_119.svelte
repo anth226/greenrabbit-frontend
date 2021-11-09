@@ -126,6 +126,7 @@
 	}
 	.top-text {
 		font-size: 18px;
+		margin-bottom: 15px;
 		font-weight: bold;
 		text-align: center;
 	}

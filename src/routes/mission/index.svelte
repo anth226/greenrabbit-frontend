@@ -9,8 +9,8 @@
 <svelte:head>
 	<title>Main Hub | GreenRabbit Game</title>
 </svelte:head>
-<Mission />
+<!-- <Mission /> -->
 <!-- <Mission_119/> -->
-<!-- <Mission_120 /> -->
+<Mission_120 />
 <!-- <Mission_110 /> -->
 <!-- <Mission100 /> -->

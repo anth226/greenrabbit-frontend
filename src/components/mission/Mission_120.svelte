@@ -6,6 +6,7 @@
 	import ellipseImg from '../../../static/assets/mission/eclipse_img.png';
 	import flower30 from '../../../static/assets/mission/flower30.png';
 	import Injured from '../../../static/assets/mission/injured.png';
+	import Plus from '../../../static/assets/mission/plus.png';
 </script>
 
 <div class="container">
@@ -19,6 +20,8 @@
 				<div class="b-left">
 					<img src={Character2} class="character" alt="character" />
 					<img src={Injured} class="injured" alt="injured" />
+					<img src={Plus} class="plus" alt="plus" />
+					<p class="time">01h 04m 17s</p>
 				</div>
 				<div class="b-right">
 					<div class="ellipse">
@@ -28,7 +31,7 @@
 								<img src={expText} class="ellipse-text" alt="ellipse-text" />
 							</div>
 							<div class="ellipse-footer">
-								<p>14</p>
+								<p>10</p>
 							</div>
 						</div>
 						<div class="ellipse-group">
@@ -37,12 +40,11 @@
 								<img src={ellipseImg} class="ellipse-text" alt="ellipse-text" />
 							</div>
 							<div class="ellipse-footer">
-								<p>35</p>
-								<img src={flower30} alt="flower 30" />
+								<p>0</p>
 							</div>
 						</div>
 					</div>
-					<div class="e-btn">CLAIM</div>
+					<div class="e-btn">CLOSE</div>
 				</div>
 			</div>
 		</div>
@@ -124,6 +126,16 @@
 		top: 28%;
 		left: 10%;
 	}
+	.plus {
+		position: absolute;
+		top: 35%;
+		left: 33%;
+	}
+	.time {
+		position: absolute;
+		top: 40%;
+		left: 42%;
+	}
 	.top {
 		height: 47%;
 		width: 100%;
@@ -137,6 +149,7 @@
 	.top-text {
 		font-size: 18px;
 		font-weight: bold;
+		margin-bottom: 15px;
 		text-align: center;
 	}
 
@@ -195,10 +208,33 @@
 			left: 50%;
 			transform: translate(-50%, 25%);
 		}
+		.plus {
+			top: 65%;
+			left: 25%;
+		}
+		.time {
+			top: 70%;
+			left: 40%;
+		}
+	}
+	@media (max-width: 400px) {
+		.plus {
+			top: 68%;
+		}
+		.time {
+			top: 75%;
+			left: 39%;
+		}
 	}
 	@media (min-width: 551px) and (max-width: 768px) {
 		.injured {
-			left: 0;
+			left: 10%;
+		}
+		.plus {
+			left: 33%;
+		}
+		.time {
+			left: 42%;
 		}
 	}
 </style>
