@@ -2,7 +2,6 @@
 	import Character from '../../../static/assets/mission/character.png';
 	import Character1 from '../../../static/assets/mission/character2.png';
 	import SquarePlus from '../../../static/assets/mission/square_plus.png';
-	import SquareLock from '../../../static/assets/mission/square_lock.png';
 	import PlantsFloria from '../../../static/assets/mission/Plants_Floria.png';
 	import PlantsNanore from '../../../static/assets/mission/Plants_Nanore.png';
 	import PlantsSap from '../../../static/assets/mission/Plants_Sap.png';
@@ -13,6 +12,8 @@
 	import Shape2 from '../../../static/assets/mission/Shape2.png';
 	import Shape3 from '../../../static/assets/mission/Shape3.png';
 	import { Carousel, CarouselControl, CarouselIndicators, CarouselItem } from 'sveltestrap';
+	import Square from './Square.svelte';
+	import SquareLock from './SquareLock.svelte';
 
 	export let plant_floria = 0;
 	export let plant_sap = 0;
@@ -97,10 +98,10 @@
 			<div class="right">
 				<p class="right-text">MISSIONS</p>
 				<div class="right-grid">
-					<img src={SquarePlus} alt="square plus" />
-					<img src={SquarePlus} alt="square plus" />
-					<img src={SquareLock} alt="square lock" />
-					<img src={SquareLock} alt="square lock" />
+					<Square />
+					<Square />
+					<SquareLock />
+					<SquareLock />
 				</div>
 			</div>
 		</div>
@@ -247,7 +248,6 @@
 		align-items: center;
 	}
 	.right-grid {
-		width: 70%;
 		display: grid;
 		grid-template-columns: 45% 45%;
 		grid-gap: 30px;
