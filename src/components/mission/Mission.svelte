@@ -1,5 +1,6 @@
 <script>
 	import Character from '../../../static/assets/mission/character.png';
+	import Character1 from '../../../static/assets/mission/character2.png';
 	import SquarePlus from '../../../static/assets/mission/square_plus.png';
 	import SquareLock from '../../../static/assets/mission/square_lock.png';
 	import PlantsFloria from '../../../static/assets/mission/Plants_Floria.png';
@@ -7,39 +8,62 @@
 	import PlantsSap from '../../../static/assets/mission/Plants_Sap.png';
 	import PlantsVersatopium from '../../../static/assets/mission/Plants_Versatopium.png';
 	import Symbol from '../../../static/assets/mission/symbol.png';
-	import Arrow from '../../../static/assets/mission/arrow.png';
+	// import Arrow from '../../../static/assets/mission/arrow.png';
 	import Shape1 from '../../../static/assets/mission/Shape1.png';
 	import Shape2 from '../../../static/assets/mission/Shape2.png';
 	import Shape3 from '../../../static/assets/mission/Shape3.png';
+	import { Carousel, CarouselControl, CarouselIndicators, CarouselItem } from 'sveltestrap';
+
+	export let plant_floria = 0;
+	export let plant_sap = 0;
+	export let plant_versatopium = 0;
+	export let plant_nanore = 0;
+
+	let activeIndex = 0;
+	let items = [Character, Character1];
+
+	$: {
+		if (activeIndex > 0) {
+			console.log('activeIndex', activeIndex);
+		}
+	}
 </script>
 
-<div class="container">
+<div class="container-box">
 	<div class="wrapper">
 		<div class="menu">
 			<div class="menu-item">
 				<img src={PlantsFloria} alt="PlantsFloria" class="menu-img" />
-				<input class="input" value="0" />
+				<span>{plant_floria}</span>
 			</div>
 			<div class="menu-item">
 				<img src={PlantsSap} alt="PlantsSap" class="menu-img" />
-				<input class="input" value="0" />
+				<span>{plant_sap}</span>
 			</div>
 			<div class="menu-item">
 				<img src={PlantsVersatopium} alt="PlantsVersatopium" class="menu-img" />
-				<input class="input" value="0" />
+				<span>{plant_versatopium}</span>
 			</div>
 			<div class="menu-item">
 				<img src={PlantsNanore} alt="PlantsNanore" class="menu-img" />
-				<input class="input" value="0" />
+				<span>{plant_nanore}</span>
 			</div>
 		</div>
 		<div class="main">
 			<div class="left">
 				<p class="left-title">YOUR FORAGERS</p>
 				<div class="left-header">
-					<img src={Arrow} alt="arrow" class="arrow" />
-					<img src={Character} alt="character" class="character" />
-					<img src={Symbol} alt="symbol" class="symbol" />
+					<Carousel {items} bind:activeIndex interval={1000000}>
+						<div class="carousel-inner">
+							{#each items as item, index}
+								<CarouselItem bind:activeIndex itemIndex={index}>
+									<img src={item} class="d-block w-100" alt={`${item} ${index + 1}`} />
+								</CarouselItem>
+							{/each}
+						</div>
+						<CarouselControl direction="prev" bind:activeIndex {items} />
+						<CarouselControl direction="next" bind:activeIndex {items} />
+					</Carousel>
 				</div>
 				<div class="left-footer">
 					<div class="left-footer-icon">
@@ -84,7 +108,7 @@
 </div>
 
 <style>
-	.container {
+	.container-box {
 		background-image: url('/assets/mission/bg.png');
 		background-repeat: no-repeat;
 		background-size: cover;
@@ -133,14 +157,6 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
-	}
-	.arrow {
-		position: absolute;
-		top: 45%;
-	}
-	.character {
-		height: 100%;
-		margin-left: 30px;
 	}
 	.symbol {
 		position: absolute;
@@ -204,7 +220,15 @@
 		border-radius: 15px;
 		margin-top: 7px;
 	}
-	.input {
+
+	.menu-item {
+		width: 25%;
+		justify-content: space-around;
+		display: flex;
+		align-items: center;
+	}
+
+	.menu-item span {
 		width: 80px;
 		height: 30px;
 		line-height: 30px;
@@ -216,12 +240,6 @@
 		border: #f0eded17 solid 0.5px;
 	}
 
-	.menu-item {
-		width: 25%;
-		justify-content: space-around;
-		display: flex;
-		align-items: center;
-	}
 	.right {
 		width: 50%;
 		display: flex;
@@ -246,7 +264,7 @@
 		font-weight: bold;
 	}
 	@media (max-width: 768px) {
-		.container {
+		.container-box {
 			background-image: url('/assets/mission/bg_mobile.png');
 			background-size: 100% 60%;
 			background-position: top;
@@ -289,6 +307,9 @@
 		}
 		.right-grid::-webkit-scrollbar {
 			display: none;
+		}
+		.left-footer-icon {
+			width: 65%;
 		}
 	}
 </style>
